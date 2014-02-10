@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 from django.conf.urls import patterns, url
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 from wiki.core.plugins import registry
 from wiki.core.plugins.base import BasePlugin
@@ -11,7 +11,7 @@ from wiki.plugins.notifications.util import truncate_title
 from wiki.plugins.images.markdown_extensions import ImageExtension
 
 class ImagePlugin(BasePlugin):
-    
+
     slug = settings.SLUG
     sidebar = {
         'headline': _('Images'),
@@ -20,7 +20,7 @@ class ImagePlugin(BasePlugin):
         'form_class': forms.SidebarForm,
         'get_form_kwargs': (lambda a: {'instance': models.Image(article=a)})
     }
-    
+
     # List of notifications to construct signal handlers for. This
     # is handled inside the notifications plugin.
     notifications = [
@@ -31,17 +31,17 @@ class ImagePlugin(BasePlugin):
          'ignore': lambda revision: bool(revision.previous_revision), # Ignore if there is a previous revision... the image isn't new
          'get_article': lambda obj: obj.article}
     ]
-    
+
     class RenderMedia:
         js = [
             'wiki/colorbox/jquery.colorbox-min.js',
             'wiki/js/images.js',
         ]
-        
+
         css = {
             'screen': 'wiki/colorbox/example1/colorbox.css'
         }
-    
+
     urlpatterns = {
         'article': patterns('',
             url('^$', views.ImageView.as_view(), name='images_index'),
@@ -54,10 +54,10 @@ class ImagePlugin(BasePlugin):
     }
 
     markdown_extensions = [ImageExtension()]
-    
+
     def __init__(self):
         #print "I WAS LOADED!"
         pass
-    
+
 registry.register(ImagePlugin)
 

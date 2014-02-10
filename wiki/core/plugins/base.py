@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 
 """Base classes for different plugin objects.
 
@@ -16,7 +16,7 @@ class BasePlugin(object):
     """Plugins should inherit from this"""
     # Must fill in!
     slug = None
-    
+
     # Optional
     settings_form = None# A form class to add to the settings tab
     urlpatterns = {
@@ -35,26 +35,26 @@ class BasePlugin(object):
                         #            ]
 
     markdown_extensions = []
-    
+
     class RenderMedia:
         js = []
         css = {}
 
 class PluginSidebarFormMixin(forms.ModelForm):
-    
+
     unsaved_article_title = forms.CharField(widget=forms.HiddenInput(),
                                             required=True)
     unsaved_article_content = forms.CharField(widget=forms.HiddenInput(),
                                               required=False)
-    
+
     def get_usermessage(self):
         pass
 
-class PluginSettingsFormMixin(object):    
+class PluginSettingsFormMixin(object):
     settings_form_headline = _('Settings for plugin')
     settings_order = 1
     settings_write_access = False
-    
+
     def get_usermessage(self):
         pass
 
