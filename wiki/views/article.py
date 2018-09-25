@@ -4,7 +4,7 @@ import difflib
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.shortcuts import render_to_response, redirect, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.template.context import RequestContext
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext as _
@@ -639,16 +639,15 @@ def merge(request, article, revision_id, urlpath=None, template_file="wiki/previ
             return redirect('wiki:edit', path=urlpath.path)
         else:
             return redirect('wiki:edit', article_id=article.id)
-        
     
-    c = RequestContext(request, {'article': article,
-                                 'title': article.current_revision.title,
-                                 'revision': None,
-                                 'merge1': revision,
-                                 'merge2': article.current_revision,
-                                 'merge': True,
-                                 'content': content})
-    return render_to_response(template_file, context_instance=c)
+    c = {'article': article,
+         'title': article.current_revision.title,
+         'revision': None,
+         'merge1': revision,
+         'merge2': article.current_revision,
+         'merge': True,
+         'content': content}
+    return render(request, template_file, context=c)
 
 # TODO: Should be a class-based view
 def root_create(request):
@@ -673,7 +672,7 @@ def root_create(request):
     else:
         create_form = forms.CreateRootForm()
     
-    c = RequestContext(request, {'create_form': create_form,
-                                 'editor': editors.getEditor(),})
-    return render_to_response("wiki/article/create_root.html", context_instance=c)
+    c = {'create_form': create_form,
+         'editor': editors.getEditor()}
+    return render(request, "wiki/article/create_root.html", context=c)
 
