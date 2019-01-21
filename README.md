@@ -30,6 +30,13 @@ Installation
 
 ### Install
 
+#### Run testproject
+
+* create virtualenv environment 
+* in project root  `pip install -e .`, `pip install -r requirements`
+* cd testproject `python manage.py runserver`
+
+
 Install directly from Github, since there is no release yet:
 
 `pip install git+git://github.com/benjaoming/django-wiki.git`
