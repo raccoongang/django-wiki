@@ -240,8 +240,6 @@ class CreateForm(forms.Form):
             raise forms.ValidationError(_(u'Numeric slug is not allowed.'))
 
         return slug
-        
-        return slug
 
 
 class DeleteForm(forms.Form):
