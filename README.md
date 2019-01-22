@@ -1,7 +1,6 @@
 django-wiki
 ===========
 
-
 *Last update: 2012-08-22*
 
 Demo here, sign up for an account to see the notification system.
