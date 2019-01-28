@@ -358,6 +358,7 @@ class Deleted(Delete):
         kwargs['purge_form'] = kwargs.pop('form', None)
         return super(Delete, self).get_context_data(**kwargs)
     
+    
 class Source(ArticleMixin, TemplateView):
 
     template_name="wiki/source.html"
@@ -607,6 +608,7 @@ def merge(request, article, revision_id, urlpath=None, template_file="wiki/previ
         old_revision = article.current_revision
         new_revision = models.ArticleRevision()
         new_revision.inherit_predecessor(article)
+        new_revision.set_from_request(request)
         new_revision.deleted = False
         new_revision.locked = False
         new_revision.title=article.current_revision.title
