@@ -84,7 +84,7 @@ def get_article(func=None, can_read=True, can_write=False,  # noqa: max-complexi
                     parent = models.URLPath.get_by_path(path)
                     return HttpResponseRedirect(
                         reverse(
-                            "wiki:create", kwargs={'path': parent.path, }) +
+                            "wiki:create", kwargs={'path': parent.path, 'item_type': 'category'}) +
                         "?slug=%s" % pathlist[-1].lower())
                 except models.URLPath.DoesNotExist:
                     return HttpResponseNotFound(
@@ -178,3 +178,4 @@ def disable_signal_for_loaddata(signal_handler):
             return
         return signal_handler(*args, **kwargs)
     return wrapper
+

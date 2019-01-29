@@ -68,7 +68,7 @@ def _clean_slug(slug, urlpath):
         already_urlpath = already_existing_slug[0]
         if already_urlpath.article and already_urlpath.article.current_revision.deleted:
             raise forms.ValidationError(
-                gettext('A deleted article with slug "%s" already exists.') %
+                gettext('A deleted entry with slug "%s" already exists.') %
                 already_urlpath.slug)
         else:
             raise forms.ValidationError(
@@ -167,11 +167,11 @@ class CreateRootForm(forms.Form):
     title = forms.CharField(
         label=_('Title'),
         help_text=_(
-            'Initial title of the article. May be overridden with revision titles.'))
+            'Initial title of the entry. May be overridden with revision titles.'))
     content = forms.CharField(
         label=_('Type in some contents'),
         help_text=_(
-            'This is just the initial contents of your article. After creating it, you can use more complex features like adding plugins, meta data, related articles etc...'),
+            'This is just the initial contents of your entry. After creating it, you can use more complex features like adding plugins, meta data, related entries etc...'),
         required=False, widget=getEditor().get_widget())  # @UndefinedVariable
 
 
@@ -180,7 +180,7 @@ class MoveForm(forms.Form):
     destination = forms.CharField(label=_('Destination'))
     slug = WikiSlugField(max_length=models.URLPath.SLUG_MAX_LENGTH)
     redirect = forms.BooleanField(label=_('Redirect pages'),
-                                  help_text=_('Create a redirect page for every moved article?'),
+                                  help_text=_('Create a redirect page for every moved item?'),
                                   required=False)
 
     def clean(self):
@@ -258,7 +258,7 @@ class EditForm(forms.Form, SpamProtectionMixin):
         title = self.cleaned_data.get('title', None)
         title = (title or "").strip()
         if not title:
-            raise forms.ValidationError(gettext('Article is missing title or has an invalid title'))
+            raise forms.ValidationError(gettext('Entry is missing title or has an invalid title'))
         return title
 
     def clean(self):
@@ -336,7 +336,7 @@ class CreateForm(forms.Form, SpamProtectionMixin):
     slug = WikiSlugField(
         label=_('Slug'),
         help_text=_(
-            "This will be the address where your article can be found. Use only alphanumeric characters and - or _.<br>Note: If you change the slug later on, links pointing to this article are <b>not</b> updated."),
+            "This will be the address where your entry can be found. Use only alphanumeric characters and - or _.<br>Note: If you change the slug later on, links pointing to this article are <b>not</b> updated."),
         max_length=models.URLPath.SLUG_MAX_LENGTH)
     content = forms.CharField(
         label=_('Contents'),
@@ -345,8 +345,12 @@ class CreateForm(forms.Form, SpamProtectionMixin):
 
     summary = forms.CharField(
         label=pgettext_lazy('Revision comment', 'Summary'),
-        help_text=_("Write a brief message for the article's history log."),
+        help_text=_("Write a brief message for the entry's history log."),
         required=False)
+
+    root_type = forms.ChoiceField(required=False, choices=models.URLPath.ROOT_TYPE_CHOICES, widget=forms.HiddenInput())
+
+    item_type = forms.ChoiceField(required=False, choices=models.URLPath.ITEM_TYPE_CHOICES, widget=forms.HiddenInput())
 
     def clean_slug(self):
         return _clean_slug(self.cleaned_data['slug'], self.urlpath_parent)
@@ -369,7 +373,7 @@ class DeleteForm(forms.Form):
         widget=HiddenInput(),
         required=False, label=_('Purge'),
         help_text=_(
-            'Purge the article: Completely remove it (and all its contents) with no undo. Purging is a good idea if you want to free the slug such that users can create new articles in its place.'))
+            'Purge the entry: Completely remove it (and all its contents) with no undo. Purging is a good idea if you want to free the slug such that users can create new articles in its place.'))
     revision = forms.ModelChoiceField(models.ArticleRevision.objects.all(),
                                       widget=HiddenInput(), required=False)
 
@@ -379,15 +383,15 @@ class DeleteForm(forms.Form):
             raise forms.ValidationError(gettext('You are not sure enough!'))
         if cd['revision'] != self.article.current_revision:
             raise forms.ValidationError(
-                gettext('While you tried to delete this article, it was modified. TAKE CARE!'))
+                gettext('While you tried to delete this entry, it was modified. TAKE CARE!'))
         return cd
 
 
 class PermissionsForm(PluginSettingsFormMixin, forms.ModelForm):
 
     locked = forms.BooleanField(
-        label=_('Lock article'),
-        help_text=_('Deny all users access to edit this article.'),
+        label=_('Lock'),
+        help_text=_('Deny all users access to edit this entry.'),
         required=False)
 
     settings_form_headline = _('Permissions')
@@ -408,22 +412,22 @@ class PermissionsForm(PluginSettingsFormMixin, forms.ModelForm):
 
     recursive = forms.BooleanField(
         label=_('Inherit permissions'),
-        help_text=_('Check here to apply the above permissions (excluding group and owner of the article) recursively to articles below this one.'),
+        help_text=_('Check here to apply the above permissions (excluding group and owner of the entry) recursively to entries below this one.'),
         required=False)
 
     recursive_owner = forms.BooleanField(
         label=_('Inherit owner'),
-        help_text=_('Check here to apply the ownership setting recursively to articles below this one.'),
+        help_text=_('Check here to apply the ownership setting recursively to entries below this one.'),
         required=False)
 
     recursive_group = forms.BooleanField(
         label=_('Inherit group'),
-        help_text=_('Check here to apply the group setting recursively to articles below this one.'),
+        help_text=_('Check here to apply the group setting recursively to entries below this one.'),
         required=False)
 
     def get_usermessage(self):
         if self.changed_data:
-            return _('Permission settings for the article were updated.')
+            return _('Permission settings for the entry were updated.')
         else:
             return _('Your permission settings were unchanged, so nothing saved.')
 

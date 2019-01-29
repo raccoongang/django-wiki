@@ -110,10 +110,10 @@ class SubscriptionForm(PluginSettingsFormMixin, forms.Form):
     )
     edit = forms.BooleanField(
         required=False,
-        label=_('When this article is edited')
+        label=_('When this entry is edited')
     )
     edit_email = forms.BooleanField(
-        required=False, label=_('Also receive emails about article edits'),
+        required=False, label=_('Also receive emails about edits'),
         widget=forms.CheckboxInput(
             attrs={
                 'onclick':

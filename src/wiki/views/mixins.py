@@ -1,5 +1,7 @@
 import logging
 
+from django.contrib.auth.mixins import AccessMixin
+from django.http import HttpResponseNotFound
 from django.views.generic.base import TemplateResponseMixin
 from wiki.conf import settings
 from wiki.core.plugins import registry
@@ -40,3 +42,14 @@ class ArticleMixin(TemplateResponseMixin):
         kwargs['children_slice_more'] = len(self.children_slice) > 20
         kwargs['plugins'] = registry.get_plugins()
         return kwargs
+
+
+class SuperUserRequiredMixin(AccessMixin):
+    """Verify that the current user is superuser."""
+    def handle_no_permission(self):
+        return HttpResponseNotFound('<h1>Page not found</h1>')
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            return self.handle_no_permission()
+        return super().dispatch(request, *args, **kwargs)

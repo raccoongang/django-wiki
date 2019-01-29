@@ -4,6 +4,7 @@ from django.utils.module_loading import import_string
 from wiki.compat import include, url
 from wiki.conf import settings
 from wiki.core.plugins import registry
+from wiki.views.category import CategoryListView
 
 
 class WikiSite:
@@ -135,7 +136,8 @@ class WikiSite:
     def get_article_path_urls(self):
         urlpatterns = [
             # Paths decided by URLs
-            url(r'^(?P<path>.+/|)_create/$', self.article_create_view, name='create'),
+            url(r'^(?P<path>wiki/)$', CategoryListView.as_view(), name='all'),
+            url(r'^(?P<path>.+/|)_create/(?P<item_type>category|article)/$', self.article_create_view, name='create'),
             url(r'^(?P<path>.+/|)_delete/$', self.article_delete_view, name='delete'),
             url(r'^(?P<path>.+/|)_deleted/$', self.article_deleted_view, name='deleted'),
             url(r'^(?P<path>.+/|)_edit/$', self.article_edit_view, name='edit'),
@@ -150,7 +152,8 @@ class WikiSite:
             url(r'^(?P<path>.+/|)_revision/merge/(?P<revision_id>[0-9]+)/$', self.revision_merge_view, name='merge_revision'),
             url(r'^(?P<path>.+/|)_plugin/(?P<slug>\w+)/$', self.article_plugin_view, name='plugin'),
             # This should always go last!
-            url(r'^(?P<path>.+/|)$', self.article_view, name='get'),
+            url(r'^(?P<path>.+/|)$', self.article_dir_view, name='get'),
+            #url(r'^(?P<path>.+/|)$', self.article_view, name='get'),
         ]
         return urlpatterns
 

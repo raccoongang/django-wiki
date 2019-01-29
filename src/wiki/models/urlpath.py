@@ -36,6 +36,20 @@ class URLPath(MPTTModel):
     # property.. but you can also use a BooleanField.
     INHERIT_PERMISSIONS = True
 
+    ARTICLE = 'article'
+    CATEGORY = 'category'
+    ITEM_TYPE_CHOICES = (
+        (ARTICLE, _('Article')),
+        (CATEGORY, _('Category'))
+    )
+
+    WIKI = 'wiki'
+    NPB = 'npb'
+    ROOT_TYPE_CHOICES = (
+        (WIKI, _('Wiki')),
+        (NPB, _('Regulations'))
+    )
+
     objects = managers.URLPathManager()
 
     # Do not use this because of
@@ -81,6 +95,18 @@ class URLPath(MPTTModel):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='moved_from'
+    )
+
+    item_type = models.CharField(
+        max_length=20,
+        choices=ITEM_TYPE_CHOICES,
+        default=CATEGORY
+    )
+
+    root_type = models.CharField(
+        max_length=20,
+        choices=ROOT_TYPE_CHOICES,
+        default=WIKI
     )
 
     def __cached_ancestors(self):
@@ -267,6 +293,8 @@ class URLPath(MPTTModel):
             cls,
             parent,
             slug,
+            item_type,
+            root_type,
             site=None,
             title="Root",
             article_kwargs={},
@@ -290,7 +318,9 @@ class URLPath(MPTTModel):
             site=site,
             parent=parent,
             slug=slug,
-            article=article)
+            article=article,
+            item_type=item_type,
+            root_type=root_type)
         article.add_object_relation(newpath)
         return newpath
 
@@ -303,7 +333,9 @@ class URLPath(MPTTModel):
             slug,
             title,
             content,
-            summary):
+            summary,
+            item_type,
+            root_type):
         """
         Creates a new URLPath, using meta data from ``request`` and copies in
         the permissions from ``perm_article``.
@@ -322,6 +354,8 @@ class URLPath(MPTTModel):
         return cls.create_urlpath(
             parent_urlpath,
             slug,
+            item_type,
+            root_type,
             title=title,
             content=content,
             user_message=summary,

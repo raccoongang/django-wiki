@@ -1,0 +1,76 @@
+{% extends "wiki/article.html" %}
+{% load wiki_tags i18n humanize %}
+
+
+{% block wiki_pagetitle %}{% trans "Listing articles in" %} {{ article.current_revision.title }}{% endblock %}
+
+{% block wiki_breadcrumbs %}
+{% endblock wiki_breadcrumbs %}
+
+{% block wiki_contents_tab %}
+    {% block atricle_title_and_menu %}
+    {% endblock atricle_title_and_menu %}
+{% url 'wiki:all' urlpath.path as self_url %}
+
+<form class="form-search directory-toolbar">
+<div class="well well-small">
+  {% if user.is_superuser %}
+  <div class="btn-group pull-left">
+    <a href="{% url 'wiki:create' path=urlpath.path item_type='category' %}" class="btn btn-default">
+      <span class="fa fa-plus"></span>
+      {% trans "Add Category" %}
+    </a>
+  </div>
+  {% endif %}
+  <div class="pull-right">
+    {{ filter_form.query }}
+  </div>
+  {% if filter_query %}
+    <div class="pull-right filter-clear">
+      <a href="{% url 'wiki:all' path=urlpath.path %}">({% trans "clear" %})</a>
+    </div>
+  {% endif %}
+
+  <div class="clearfix"></div>
+</div>
+</form>
+<h1>{% trans "Categories" %}:</h1>
+<table class="table table-striped">
+  <tr>
+    <th>{% trans "Title" %}</th>
+    <th>{% trans "Last modified" %}</th>
+  </tr>
+  {% for urlpath in directory %}
+    <tr>
+      <td>
+        <a href="{% url 'wiki:get' path=urlpath.path %}"> {{ urlpath.article.current_revision.title }} </a>
+        <a href="{% url 'wiki:dir' path=urlpath.path %}" class="list-children"> › </a>
+        {% if urlpath.article.current_revision.deleted %}
+          <span class="fa fa-trash"></span>
+        {% endif %}
+        {% if urlpath.article.current_revision.locked %}
+          <span class="fa fa-lock"></span>
+        {% endif %}
+      </td>
+      <td>
+        {{ urlpath.article.current_revision.created|naturaltime }}
+      </td>
+    </tr>
+    {% empty%}
+    <tr>
+      <td colspan="100">
+        <em>
+          {% if urlpath.item_type == 'article' %}
+          {% trans "There are no articles in this level" %}
+          {% else %}
+          {% trans "There are no categories in this level" %}
+          {% endif %}
+        </em>
+      </td>
+    </tr>
+  {% endfor %}
+</table>
+
+{% include "wiki/includes/pagination.html" %}
+
+{% endblock %}

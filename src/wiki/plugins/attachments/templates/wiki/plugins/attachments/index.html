@@ -7,7 +7,13 @@
 {% block wiki_contents_tab %}
 <div class="row">
   <div class="col-lg-8">
-    <p class="lead">{% trans "The following files are available for this article. Copy the markdown tag to directly refer to a file from the article text." %}</p>
+    <p class="lead">
+      {% if urlpath.item_type == 'article' %}
+      {% trans "The following files are available for this article. Copy the markdown tag to directly refer to a file from the article text." %}
+      {% else %}
+      {% trans "The following files are available for this category. Copy the markdown tag to directly refer to a file from the category description." %}
+      {% endif %}
+    </p>
     <p> {% blocktrans trimmed %}
       Complete markdown code syntax: <code>[attachment:id title:"text" size]</code><br>
       &nbsp;&nbsp;title: Link text replacement for the file name.
@@ -63,7 +69,13 @@
     </table>
     {% empty %}
 
-      <p style="margin-bottom: 20px;"><em>{% trans "There are no attachments for this article." %}</em></p>
+      <p style="margin-bottom: 20px;"><em>
+        {% if urlpath.item_type == 'article'%}
+        {% trans "There are no attachments for this article." %}
+        {% else %}
+        {% trans "There are no attachments for this category." %}
+        {% endif %}
+      </em></p>
 
     {% endfor %}
   </div>

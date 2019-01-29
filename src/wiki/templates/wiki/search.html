@@ -42,7 +42,13 @@
     {% empty%}
     <tr>
       <td colspan="100">
-        <em>{% trans "There are no articles in this level" %}</em>
+        <em>
+          {% if urlpath.item_type == 'article' %}
+          {% trans "There are no articles in this level" %}
+          {% else %}
+          {% trans "There are no categories in this level" %}
+          {% endif %}
+        </em>
       </td>
     </tr>
   {% endfor %}

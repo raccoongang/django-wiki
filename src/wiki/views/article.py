@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Q
-from django.http import Http404
+from django.http import Http404, HttpResponseNotFound
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -25,7 +25,7 @@ from wiki.core.paginator import WikiPaginator
 from wiki.core.plugins import registry as plugin_registry
 from wiki.core.utils import object_to_json_response
 from wiki.decorators import get_article
-from wiki.views.mixins import ArticleMixin
+from wiki.views.mixins import ArticleMixin, SuperUserRequiredMixin
 
 log = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class ArticleView(ArticleMixin, TemplateView):
         return ArticleMixin.get_context_data(self, **kwargs)
 
 
-class Create(FormView, ArticleMixin):
+class Create(SuperUserRequiredMixin, FormView, ArticleMixin):
 
     form_class = forms.CreateForm
     template_name = "wiki/create.html"
@@ -61,6 +61,8 @@ class Create(FormView, ArticleMixin):
         kwargs = self.get_form_kwargs()
         initial = kwargs.get('initial', {})
         initial['slug'] = self.request.GET.get('slug', None)
+        initial['root_type'] = self.urlpath.root_type
+        initial['item_type'] = self.kwargs['item_type']
         kwargs['initial'] = initial
         form = form_class(self.request, self.urlpath, **kwargs)
         form.fields['slug'].widget = forms.TextInputPrepend(
@@ -83,22 +85,24 @@ class Create(FormView, ArticleMixin):
                 form.cleaned_data['slug'],
                 form.cleaned_data['title'],
                 form.cleaned_data['content'],
-                form.cleaned_data['summary']
+                form.cleaned_data['summary'],
+                form.cleaned_data['item_type'],
+                form.cleaned_data['root_type'],
             )
             messages.success(
                 self.request,
-                _("New article '%s' created.") %
-                self.newpath.article.current_revision.title)
+                _("New %s '%s' created.") %
+                (self.newpath.item_type, self.newpath.article.current_revision.title))
         # TODO: Handle individual exceptions better and give good feedback.
         except Exception as e:
-            log.exception("Exception creating article.")
+            log.exception("Exception creating %s." % self.newpath.item_type)
             if self.request.user.is_superuser:
                 messages.error(
                     self.request,
-                    _("There was an error creating this article: %s") %
-                    str(e))
+                    _("There was an error creating this %s: %s") %
+                    (self.newpath.item_type, str(e)))
             else:
-                messages.error(self.request, _("There was an error creating this article."))
+                messages.error(self.request, _("There was an error creating this %s.") % self.newpath.item_type)
             return redirect('wiki:get', '')
 
         return self.get_success_url()
@@ -116,10 +120,11 @@ class Create(FormView, ArticleMixin):
         c['parent_article'] = self.article
         c['create_form'] = c.pop('form', None)
         c['editor'] = editors.getEditor()
+        c['item_type'] = self.kwargs['item_type']
         return c
 
 
-class Delete(FormView, ArticleMixin):
+class Delete(SuperUserRequiredMixin, FormView, ArticleMixin):
 
     form_class = forms.DeleteForm
     template_name = "wiki/delete.html"
@@ -130,6 +135,9 @@ class Delete(FormView, ArticleMixin):
             not_locked=True,
             can_delete=True))
     def dispatch(self, request, article, *args, **kwargs):
+        urlpath = article.urlpath_set.get(article_id=article.id)
+        if not urlpath.parent.parent:
+            return HttpResponseNotFound('<h1>Page not found</h1>')
         return self.dispatch1(request, article, *args, **kwargs)
 
     def dispatch1(self, request, article, *args, **kwargs):
@@ -188,7 +196,7 @@ class Delete(FormView, ArticleMixin):
         if self.cannot_delete_root or cannot_delete_children:
             messages.error(
                 self.request,
-                _('This article cannot be deleted because it has children or is a root article.'))
+                _('This category cannot be deleted because it has children or is a root category.'))
             return redirect('wiki:get', article_id=self.article.id)
 
         if can_moderate and purge:
@@ -198,7 +206,7 @@ class Delete(FormView, ArticleMixin):
             self.article.delete()
             messages.success(
                 self.request,
-                _('This article together with all its contents are now completely gone! Thanks!'))
+                _('This %s together with all its contents are now completely gone! Thanks!') % self.urlpath.item_type)
         else:
             revision = models.ArticleRevision()
             revision.inherit_predecessor(self.article)
@@ -207,8 +215,8 @@ class Delete(FormView, ArticleMixin):
             self.article.add_revision(revision)
             messages.success(
                 self.request,
-                _('The article "%s" is now marked as deleted! Thanks for keeping the site free from unwanted material!') %
-                revision.title)
+                _('The %s "%s" is now marked as deleted! Thanks for keeping the site free from unwanted material!') %
+                (self.urlpath.item_type, revision.title))
         return self.get_success_url()
 
     def get_success_url(self):
@@ -364,7 +372,7 @@ class Edit(ArticleMixin, FormView):
         self.article.add_revision(revision)
         messages.success(
             self.request,
-            _('A new revision of the article was successfully added.'))
+            _('A new revision of the %s was successfully added.' % self.urlpath.item_type))
         return self.get_success_url()
 
     def get_success_url(self):
@@ -385,7 +393,7 @@ class Edit(ArticleMixin, FormView):
         return super().get_context_data(**kwargs)
 
 
-class Move(ArticleMixin, FormView):
+class Move(SuperUserRequiredMixin, ArticleMixin, FormView):
 
     form_class = forms.MoveForm
     template_name = "wiki/move.html"
@@ -404,7 +412,8 @@ class Move(ArticleMixin, FormView):
     def get_context_data(self, **kwargs):
         if 'form' not in kwargs:
             kwargs['form'] = self.get_form()
-        kwargs['root_path'] = models.URLPath.root()
+        slug = self.urlpath.root_type
+        kwargs['root_path'] = models.URLPath.objects.get(slug=slug)
 
         return super().get_context_data(**kwargs)
 
@@ -490,8 +499,8 @@ class Move(ArticleMixin, FormView):
             messages.success(
                 self.request,
                 ngettext(
-                    "Article successfully moved! Created {n} redirect.",
-                    "Article successfully moved! Created {n} redirects.",
+                    ("%s successfully moved! Created {n} redirect." % urlpath_new.item_type),
+                    ("%s successfully moved! Created {n} redirects." % urlpath_new.item_type),
                     len(descendants)
                 ).format(
                     n=len(descendants)
@@ -499,7 +508,7 @@ class Move(ArticleMixin, FormView):
             )
 
         else:
-            messages.success(self.request, _('Article successfully moved!'))
+            messages.success(self.request, _(('%s successfully moved!') % self.urlpath.item_type).capitalize())
         return redirect("wiki:get", path=self.urlpath.path)
 
 
@@ -545,8 +554,8 @@ class Deleted(Delete):
                 self.article.add_revision(revision)
                 messages.success(
                     request,
-                    _('The article "%s" and its children are now restored.') %
-                    revision.title)
+                    _('The %s "%s" and its children are now restored.') %
+                    (self.urlpath.item_type, revision.title))
                 if self.urlpath:
                     return redirect('wiki:get', path=self.urlpath.path)
                 else:
@@ -607,8 +616,6 @@ class History(ListView, ArticleMixin):
 
 
 class Dir(ListView, ArticleMixin):
-
-    template_name = "wiki/dir.html"
     allow_empty = True
     context_object_name = 'directory'
     model = models.URLPath
@@ -623,6 +630,12 @@ class Dir(ListView, ArticleMixin):
         else:
             self.query = None
         return super().dispatch(request, article, *args, **kwargs)
+
+    def get_template_names(self):
+        if self.urlpath.item_type == 'article':
+            return ["wiki/view.html"]
+        else:
+            return ["wiki/dir.html"]
 
     def get_queryset(self):
         children = self.urlpath.get_children().can_read(self.request.user)
@@ -650,7 +663,9 @@ class Dir(ListView, ArticleMixin):
         for child in updated_children:
             child.set_cached_ancestors_from_parent(self.urlpath)
         kwargs[self.context_object_name] = updated_children
-
+        children = self.get_queryset()
+        kwargs['subcategories'] = children.filter(item_type='category')
+        kwargs['child_articles'] = children.filter(item_type='article')
         return kwargs
 
 

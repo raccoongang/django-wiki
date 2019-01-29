@@ -4,10 +4,13 @@
 
 <ul class="breadcrumb pull-left">
   {% for ancestor in urlpath.cached_ancestors %}
+  {% if ancestor.parent %}
     <li><a href="{% url 'wiki:get' path=ancestor.path %}">{{ ancestor.article.current_revision.title|truncatechars:25 }}</a></li>
+  {% endif %}
   {% endfor %}
   <li class="active">{{ article.current_revision.title|truncatechars:25 }}</li>
 </ul>
+  {% block dropdown_buttons %}
 <div class="pull-left" style="margin-left: 10px;">
   <div class="btn-group">
     <a class="btn btn-info dropdown-toggle" data-toggle="dropdown" href="#" style="padding: 7px;" title="{% trans "Sub-articles for" %} {{ article.current_revision.title }}">
@@ -43,19 +46,30 @@
     <ul class="dropdown-menu">
       <li>
         {% if urlpath.parent %}
-        <a href="{% url 'wiki:create' path=urlpath.parent.path %}" style="padding: 7px;">
+        <a href="{% url 'wiki:create' path=urlpath.parent.path item_type='article'%}" style="padding: 7px;">
           <span class="fa fa-arrow-right"></span>
           {% blocktrans with article.current_revision.title as title %}New article next to {{ title }}{% endblocktrans %}
         </a>
         {% endif %}
-        <a href="{% url 'wiki:create' path=urlpath.path %}" style="padding: 7px;">
+        <a href="{% url 'wiki:create' path=urlpath.path item_type='article'%}" style="padding: 7px;">
           <span class="fa fa-arrow-down"></span>
           {% blocktrans with article.current_revision.title as title %}New article below {{ title }}{% endblocktrans %}
+        </a>
+        {% if urlpath.parent %}
+        <a href="{% url 'wiki:create' path=urlpath.parent.path item_type='category'%}" style="padding: 7px;">
+          <span class="fa fa-arrow-right"></span>
+          {% blocktrans with article.current_revision.title as title %}New category next to {{ title }}{% endblocktrans %}
+        </a>
+        {% endif %}
+        <a href="{% url 'wiki:create' path=urlpath.path item_type='category'%}" style="padding: 7px;">
+          <span class="fa fa-arrow-down"></span>
+          {% blocktrans with article.current_revision.title as title %}New category below {{ title }}{% endblocktrans %}
         </a>
       </li>
     </ul>
   </div>
 </div>
+  {% endblock dropdown_buttons %}
 <div style="clear: both"></div>
 </div>
 {% endif %}
