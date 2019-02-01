@@ -4,7 +4,7 @@ from django.utils.module_loading import import_string
 from wiki.compat import include, url
 from wiki.conf import settings
 from wiki.core.plugins import registry
-from wiki.views.category import CategoryListView
+from wiki.views import category
 
 
 class WikiSite:
@@ -43,7 +43,7 @@ class WikiSite:
         self.revision_change_view = getattr(self, "revision_change_view", article.ChangeRevisionView.as_view())
         self.revision_merge_view = getattr(self, "revision_merge_view", article.MergeView.as_view())
         self.revision_preview_merge_view = getattr(self, "revision_preview_merge_view", article.MergeView.as_view(preview=True))
-
+        self.category_view = getattr(self, "category_view", category.CategoryListView.as_view())
         self.search_view = getattr(self, "search_view", article.SearchView.as_view())
         self.article_diff_view = getattr(self, "article_diff_view", article.DiffView.as_view())
 
@@ -75,9 +75,9 @@ class WikiSite:
 
     def get_root_urls(self):
         urlpatterns = [
-            url(r'^$', self.article_view, name='root', kwargs={'path': ''}),
-            url(r'^create-root/$', self.root_view, name='root_create'),
-            url(r'^missing-root/$', self.root_missing_view, name='root_missing'),
+            # url(r'^$', self.article_view, name='root', kwargs={'path': ''}),
+            # url(r'^create-root/$', self.root_view, name='root_create'),
+            # url(r'^missing-root/$', self.root_missing_view, name='root_missing'),
             url(r'^_search/$', self.search_view, name='search'),
             url(r'^_revision/diff/(?P<revision_id>[0-9]+)/$', self.article_diff_view, name='diff'),
         ]
@@ -92,10 +92,10 @@ class WikiSite:
     def get_accounts_urls(self):
         if settings.ACCOUNT_HANDLING:
             urlpatterns = [
-                url(r'^_accounts/sign-up/$', self.signup_view, name='signup'),
+                # url(r'^_accounts/sign-up/$', self.signup_view, name='signup'),
                 url(r'^_accounts/logout/$', self.logout_view, name='logout'),
-                url(r'^_accounts/login/$', self.login_view, name='login'),
-                url(r'^_accounts/settings/$', self.profile_update_view, name='profile_update'),
+                # url(r'^_accounts/login/$', self.login_view, name='login'),
+                # url(r'^_accounts/settings/$', self.profile_update_view, name='profile_update'),
             ]
         else:
             urlpatterns = []
@@ -116,7 +116,7 @@ class WikiSite:
     def get_article_urls(self):
         urlpatterns = [
             # Paths decided by article_ids
-            url(r'^$', self.article_view, name='get'),
+            url(r'^$', self.category_view, name='get'),
             url(r'^delete/$', self.article_delete_view, name='delete'),
             url(r'^deleted/$', self.article_deleted_view, name='deleted'),
             url(r'^edit/$', self.article_edit_view, name='edit'),
@@ -136,7 +136,8 @@ class WikiSite:
     def get_article_path_urls(self):
         urlpatterns = [
             # Paths decided by URLs
-            url(r'^(?P<path>wiki/)$', CategoryListView.as_view(), name='all'),
+            url(r'^$', self.category_view, kwargs={'path': '/'}),
+            url(r'^(?P<path>wiki/)$', self.category_view, name='all'),
             url(r'^(?P<path>.+/|)_create/(?P<item_type>category|article)/$', self.article_create_view, name='create'),
             url(r'^(?P<path>.+/|)_delete/$', self.article_delete_view, name='delete'),
             url(r'^(?P<path>.+/|)_deleted/$', self.article_deleted_view, name='deleted'),
@@ -153,7 +154,7 @@ class WikiSite:
             url(r'^(?P<path>.+/|)_plugin/(?P<slug>\w+)/$', self.article_plugin_view, name='plugin'),
             # This should always go last!
             url(r'^(?P<path>.+/|)$', self.article_dir_view, name='get'),
-            #url(r'^(?P<path>.+/|)$', self.article_view, name='get'),
+            # # url(r'^(?P<path>.+/|)$', self.article_view, name='get'),
         ]
         return urlpatterns
 

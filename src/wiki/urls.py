@@ -63,16 +63,16 @@ class WikiURLPatterns:
 
     def get_root_urls(self):
         urlpatterns = [
-            url(r'^$',
-                self.article_view_class.as_view(),
-                name='root',
-                kwargs={'path': ''}),
-            url(r'^create-root/$',
-                article.CreateRootView.as_view(),
-                name='root_create'),
-            url(r'^missing-root/$',
-                article.MissingRootView.as_view(),
-                name='root_missing'),
+            # url(r'^$',
+            #     self.article_view_class.as_view(),
+            #     name='root',
+            #     kwargs={'path': ''}),
+            # url(r'^create-root/$',
+            #     article.CreateRootView.as_view(),
+            #     name='root_create'),
+            # url(r'^missing-root/$',
+            #     article.MissingRootView.as_view(),
+            #     name='root_missing'),
             url(r'^_search/$',
                 self.search_view_class.as_view(),
                 name='search'),
@@ -93,18 +93,18 @@ class WikiURLPatterns:
     def get_accounts_urls(self):
         if settings.ACCOUNT_HANDLING:
             urlpatterns = [
-                url(r'^_accounts/sign-up/$',
-                    self.signup_view_class.as_view(),
-                    name='signup'),
+                # url(r'^_accounts/sign-up/$',
+                #     self.signup_view_class.as_view(),
+                #     name='signup'),
                 url(r'^_accounts/logout/$',
                     self.logout_view_class.as_view(),
                     name='logout'),
-                url(r'^_accounts/login/$',
-                    self.login_view_class.as_view(),
-                    name='login'),
-                url(r'^_accounts/settings/$',
-                    self.profile_update_view_class.as_view(),
-                    name='profile_update'),
+                # url(r'^_accounts/login/$',
+                #     self.login_view_class.as_view(),
+                #     name='login'),
+                # url(r'^_accounts/settings/$',
+                #     self.profile_update_view_class.as_view(),
+                #     name='profile_update'),
             ]
         else:
             urlpatterns = []
