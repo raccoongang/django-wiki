@@ -116,7 +116,7 @@ class WikiSite:
     def get_article_urls(self):
         urlpatterns = [
             # Paths decided by article_ids
-            url(r'^$', self.category_view, name='get'),
+            url(r'^$', self.article_view, name='get'),
             url(r'^delete/$', self.article_delete_view, name='delete'),
             url(r'^deleted/$', self.article_deleted_view, name='deleted'),
             url(r'^edit/$', self.article_edit_view, name='edit'),
@@ -136,7 +136,6 @@ class WikiSite:
     def get_article_path_urls(self):
         urlpatterns = [
             # Paths decided by URLs
-            url(r'^$', self.category_view, kwargs={'path': '/'}),
             url(r'^(?P<path>wiki/)$', self.category_view, name='all'),
             url(r'^(?P<path>.+/|)_create/(?P<item_type>category|article)/$', self.article_create_view, name='create'),
             url(r'^(?P<path>.+/|)_delete/$', self.article_delete_view, name='delete'),
@@ -154,7 +153,6 @@ class WikiSite:
             url(r'^(?P<path>.+/|)_plugin/(?P<slug>\w+)/$', self.article_plugin_view, name='plugin'),
             # This should always go last!
             url(r'^(?P<path>.+/|)$', self.article_dir_view, name='get'),
-            # # url(r'^(?P<path>.+/|)$', self.article_view, name='get'),
         ]
         return urlpatterns
 
