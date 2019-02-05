@@ -26,6 +26,7 @@ from wiki.core.plugins import registry as plugin_registry
 from wiki.core.utils import object_to_json_response
 from wiki.decorators import get_article
 from wiki.views.mixins import ArticleMixin, SuperUserRequiredMixin
+from wiki.models import URLPath
 
 log = logging.getLogger(__name__)
 
@@ -136,7 +137,7 @@ class Delete(SuperUserRequiredMixin, FormView, ArticleMixin):
             can_delete=True))
     def dispatch(self, request, article, *args, **kwargs):
         urlpath = article.urlpath_set.get(article_id=article.id)
-        if not urlpath.parent.parent:
+        if urlpath.slug in [URLPath.WIKI, URLPath.NPB]:
             return HttpResponseNotFound('<h1>Page not found</h1>')
         return self.dispatch1(request, article, *args, **kwargs)
 
