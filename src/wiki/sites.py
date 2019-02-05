@@ -136,7 +136,7 @@ class WikiSite:
     def get_article_path_urls(self):
         urlpatterns = [
             # Paths decided by URLs
-            url(r'^(?P<path>wiki/)$', self.category_view, name='all'),
+            url(r'^(?P<path>wiki/|npb/)$', self.category_view, name='all'),
             url(r'^(?P<path>.+/|)_create/(?P<item_type>category|article)/$', self.article_create_view, name='create'),
             url(r'^(?P<path>.+/|)_delete/$', self.article_delete_view, name='delete'),
             url(r'^(?P<path>.+/|)_deleted/$', self.article_deleted_view, name='deleted'),
