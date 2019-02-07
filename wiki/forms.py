@@ -203,7 +203,11 @@ class CreateForm(forms.Form):
         self.urlpath_parent = urlpath_parent
     
     title = forms.CharField(label=_(u'Title'),)
-    slug = forms.SlugField(label=_(u'Slug'), help_text=_(u"This will be the address where your article can be found. Use only alphanumeric characters and - or _. Note that you cannot change the slug after creating the article."),
+    slug = forms.SlugField(label=_(u'Slug'), 
+                           help_text=_(u"This will be the address where your article can be found. "
+                                       u"Use only alphanumeric characters and - or _. "
+                                       u"Note that you cannot change the slug after creating the article.  "
+                                       u"Please, do not use only numeric characters"),
                            max_length=models.URLPath.SLUG_MAX_LENGTH)
     content = forms.CharField(label=_(u'Contents'),
                               required=False, widget=getEditor().get_widget()) #@UndefinedVariable
@@ -230,6 +234,13 @@ class CreateForm(forms.Form):
                 raise forms.ValidationError(_(u'A deleted article with slug "%s" already exists.') % already_urlpath.slug)
             else:
                 raise forms.ValidationError(_(u'A slug named "%s" already exists.') % already_urlpath.slug)
+
+        try:
+            int(slug)
+        except ValueError:
+            pass
+        else:
+            raise forms.ValidationError(_(u'Numeric slug is not allowed.'))
         
         return slug
 
