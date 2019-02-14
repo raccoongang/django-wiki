@@ -623,6 +623,7 @@ def merge(request, article, revision_id, urlpath=None, template_file="wiki/previ
     if not preview:
         old_revision = article.current_revision
         new_revision = models.ArticleRevision()
+        new_revision.set_from_request(request)
         new_revision.inherit_predecessor(article)
         new_revision.deleted = False
         new_revision.locked = False
