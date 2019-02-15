@@ -12,12 +12,8 @@
 
   <div id="article-container">
     {% block atricle_title_and_menu %}
+    <h1 id="article-title">{{ urlpath.item_type|title }}: {{ article.current_revision.title|title }}</h1>
     <ul class="nav nav-pills" id="article-menu">
-      <li class="pull-left" id="article-title-li">
-        <h1 id="article-title">
-          {{ urlpath.item_type|title }}: {{ article.current_revision.title|title }}
-        </h1>
-      </li>
       {% block article_menu %}
         {% if user.is_superuser %}
           {% include "wiki/includes/article_menu.html" %}
