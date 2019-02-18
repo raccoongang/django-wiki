@@ -92,16 +92,14 @@ class Create(SuperUserRequiredMixin, FormView, ArticleMixin):
             )
             messages.success(
                 self.request,
-                _("New %s '%s' created.") %
-                (self.newpath.item_type, self.newpath.article.current_revision.title))
+                _("New {} '{}' created.").format(self.newpath.item_type, self.newpath.article.current_revision.title))
         # TODO: Handle individual exceptions better and give good feedback.
         except Exception as e:
             log.exception("Exception creating %s." % self.newpath.item_type)
             if self.request.user.is_superuser:
                 messages.error(
                     self.request,
-                    _("There was an error creating this %s: %s") %
-                    (self.newpath.item_type, str(e)))
+                    _("There was an error creating this {}: {}").format(self.newpath.item_type, str(e)))
             else:
                 messages.error(self.request, _("There was an error creating this %s.") % self.newpath.item_type)
             return redirect('wiki:get', '')
@@ -216,8 +214,9 @@ class Delete(SuperUserRequiredMixin, FormView, ArticleMixin):
             self.article.add_revision(revision)
             messages.success(
                 self.request,
-                _('The %s "%s" is now marked as deleted! Thanks for keeping the site free from unwanted material!') %
-                (self.urlpath.item_type, revision.title))
+                _('The {} "{}" is now marked as deleted! Thanks for keeping the site free from unwanted material!').format(
+                    self.urlpath.item_type, revision.title
+                ))
         return self.get_success_url()
 
     def get_success_url(self):
@@ -555,8 +554,7 @@ class Deleted(Delete):
                 self.article.add_revision(revision)
                 messages.success(
                     request,
-                    _('The %s "%s" and its children are now restored.') %
-                    (self.urlpath.item_type, revision.title))
+                    _('The {} "{}" and its children are now restored.').format(self.urlpath.item_type, revision.title))
                 if self.urlpath:
                     return redirect('wiki:get', path=self.urlpath.path)
                 else:
