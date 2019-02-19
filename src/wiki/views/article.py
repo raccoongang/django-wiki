@@ -90,18 +90,23 @@ class Create(SuperUserRequiredMixin, FormView, ArticleMixin):
                 form.cleaned_data['item_type'],
                 form.cleaned_data['root_type'],
             )
+            msg = _("New category '{}' created.") if self.newpath.item_type == URLPath.CATEGORY else _("New article '{}' created.")
             messages.success(
                 self.request,
-                _("New {} '{}' created.").format(self.newpath.item_type, self.newpath.article.current_revision.title))
+                msg.format(self.newpath.article.current_revision.title))
         # TODO: Handle individual exceptions better and give good feedback.
         except Exception as e:
             log.exception("Exception creating %s." % self.newpath.item_type)
             if self.request.user.is_superuser:
+                msg = _("There was an error creating this category: {}"
+                        ) if self.newpath.item_type == URLPath.CATEGORY else _("There was an error creating this article: {}")
                 messages.error(
                     self.request,
-                    _("There was an error creating this {}: {}").format(self.newpath.item_type, str(e)))
+                    msg.format(str(e)))
             else:
-                messages.error(self.request, _("There was an error creating this %s.") % self.newpath.item_type)
+                msg = _("There was an error creating this category.") if self.newpath.item_type == URLPath.CATEGORY else _(
+                    "There was an error creating this article.")
+                messages.error(self.request, msg)
             return redirect('wiki:get', '')
 
         return self.get_success_url()
@@ -203,20 +208,22 @@ class Delete(SuperUserRequiredMixin, FormView, ArticleMixin):
             if self.urlpath:
                 self.urlpath.delete_subtree()
             self.article.delete()
-            messages.success(
-                self.request,
-                _('This %s together with all its contents are now completely gone! Thanks!') % self.urlpath.item_type)
+            msg = _('This category together with all its contents are now completely gone! Thanks!'
+                    ) if self.urlpath.item_type == URLPath.CATEGORY else _(
+                'This article together with all its contents are now completely gone! Thanks!'
+            )
+            messages.success(self.request, msg)
         else:
             revision = models.ArticleRevision()
             revision.inherit_predecessor(self.article)
             revision.set_from_request(self.request)
             revision.deleted = True
             self.article.add_revision(revision)
-            messages.success(
-                self.request,
-                _('The {} "{}" is now marked as deleted! Thanks for keeping the site free from unwanted material!').format(
-                    self.urlpath.item_type, revision.title
-                ))
+            msg = _('The category "{}" is now marked as deleted! Thanks for keeping the site free from unwanted material!'
+                    ) if self.urlpath.item_type == URLPath.CATEGORY else _(
+                'The article "{}" is now marked as deleted! Thanks for keeping the site free from unwanted material!'
+            )
+            messages.success(self.request, msg.format(revision.title))
         return self.get_success_url()
 
     def get_success_url(self):
@@ -339,9 +346,10 @@ class Edit(ArticleMixin, FormView):
                             request.session[
                                 'unsaved_article_content_%d' %
                                 self.article.id] = content
-                            messages.warning(
-                                request,
-                                _('Please note that your article text has not yet been saved!'))
+                            msg = _('Please note that your category text has not yet been saved!') if self.urlpath.item_type == URLPath.CATEGORY else _(
+                            'Please note that your article text has not yet been saved!'
+                            )
+                            messages.warning(request, msg)
 
                         if self.urlpath:
                             return redirect(
@@ -370,9 +378,10 @@ class Edit(ArticleMixin, FormView):
         revision.deleted = False
         revision.set_from_request(self.request)
         self.article.add_revision(revision)
-        messages.success(
-            self.request,
-            _('A new revision of the %s was successfully added.' % self.urlpath.item_type))
+        msg = _('A new revision of the category was successfully added.') if self.urlpath.item_type == URLPath.CATEGORY else _(
+            'A new revision of the article was successfully added.'
+        )
+        messages.success(self.request, msg)
         return self.get_success_url()
 
     def get_success_url(self):
@@ -422,7 +431,7 @@ class Move(SuperUserRequiredMixin, ArticleMixin, FormView):
         if not self.urlpath.parent:
             messages.error(
                 self.request,
-                _('This article cannot be moved because it is a root article.')
+                _('This category cannot be moved because it is a root category.')
             )
             return redirect('wiki:get', article_id=self.article.id)
 
@@ -436,7 +445,7 @@ class Move(SuperUserRequiredMixin, ArticleMixin, FormView):
             if tmp_path == self.urlpath:
                 messages.error(
                     self.request,
-                    _('This article cannot be moved to a child of itself.')
+                    _('This item cannot be moved to a child of itself.')
                 )
                 return redirect('wiki:move', article_id=self.article.id)
             tmp_path = tmp_path.parent
@@ -490,25 +499,34 @@ class Move(SuperUserRequiredMixin, ArticleMixin, FormView):
                     parent_urlpath,
                     slug,
                     _("Moved: {title}").format(title=descendant.article),
-                    _("Article moved to {link}").format(link=link),
+                    _("Item moved to {link}").format(link=link),
                     _("Created redirect (auto)"),
+                    item_type=self.urlpath.item_type,
+                    root_type=self.urlpath.root_type,
                 )
                 urlpath_new.moved_to = descendant
                 urlpath_new.save()
-
-            messages.success(
-                self.request,
-                ngettext(
-                    ("%s successfully moved! Created {n} redirect." % urlpath_new.item_type),
-                    ("%s successfully moved! Created {n} redirects." % urlpath_new.item_type),
+            if urlpath_new.item_type == URLPath.CATEGORY:
+                msg = ngettext(
+                    ("Category successfully moved! Created {n} redirect."),
+                    ("Category successfully moved! Created {n} redirects."),
                     len(descendants)
                 ).format(
                     n=len(descendants)
                 )
-            )
+            else:
+                msg = ngettext(
+                    ("Article successfully moved! Created {n} redirect."),
+                    ("Article successfully moved! Created {n} redirects."),
+                    len(descendants)
+                ).format(
+                    n=len(descendants)
+                )
+            messages.success(self.request, msg)
 
         else:
-            messages.success(self.request, _(('%s successfully moved!') % self.urlpath.item_type).capitalize())
+            msg = _('Category successfully moved!') if self.urlpath.item_type == URLPath.CATEGORY else _('Article successfully moved!')
+            messages.success(self.request, msg.capitalize())
         return redirect("wiki:get", path=self.urlpath.path)
 
 
@@ -550,11 +568,11 @@ class Deleted(Delete):
                 revision.inherit_predecessor(self.article)
                 revision.set_from_request(request)
                 revision.deleted = False
-                revision.automatic_log = _('Restoring article')
+                revision.automatic_log = _('Restoring category') if self.urlpath.item_type == URLPath.CATEGORY else _('Restoring article')
                 self.article.add_revision(revision)
-                messages.success(
-                    request,
-                    _('The {} "{}" and its children are now restored.').format(self.urlpath.item_type, revision.title))
+                msg = _('The category "{}" and its children are now restored.') if self.urlpath.item_type == URLPath.CATEGORY else _(
+                    'The article "{}" is now restored.')
+                messages.success(request, msg.format(revision.title))
                 if self.urlpath:
                     return redirect('wiki:get', path=self.urlpath.path)
                 else:
@@ -663,8 +681,8 @@ class Dir(ListView, ArticleMixin):
             child.set_cached_ancestors_from_parent(self.urlpath)
         kwargs[self.context_object_name] = updated_children
         children = self.get_queryset()
-        kwargs['subcategories'] = children.filter(item_type='category')
-        kwargs['child_articles'] = children.filter(item_type='article')
+        kwargs['subcategories'] = children.filter(item_type=URLPath.CATEGORY)
+        kwargs['child_articles'] = children.filter(item_type=URLPath.ARTICLE)
         return kwargs
 
 
@@ -825,12 +843,9 @@ class ChangeRevisionView(RedirectView):
             id=self.kwargs['revision_id'])
         self.article.current_revision = revision
         self.article.save()
-        messages.success(
-            self.request,
-            _("The article %(title)s is now set to display revision #%(revision_number)d") % {
-                'title': revision.title,
-                'revision_number': revision.revision_number,
-            })
+        msg = _("The category '{}' is now set to display revision #{}"
+                ) if self.urlpath.item_type == URLPath.CATEGORY else _("The article '{}' is now set to display revision #{}")
+        messages.success(self.request, msg.format(revision.title, revision.revision_number))
 
 
 class Preview(ArticleMixin, TemplateView):
