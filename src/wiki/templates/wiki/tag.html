@@ -1,0 +1,21 @@
+{% extends "wiki/base.html" %}
+{% load wiki_tags i18n humanize %}
+
+{% block wiki_contents %}
+
+<h1>{% trans "Tag" %}: {{ tag.name }}</h1>
+
+<h2>{% trans "Categories" %}</h2>
+{% for urlpath in categories %}
+<a href="{% url 'wiki:get' path=urlpath.path %}">{{ urlpath.article.current_revision.title }}</a><br/>
+{% endfor %}
+
+<h2>{% trans "Articles" %}</h2>
+{% for urlpath in articles %}
+<a href="{% url 'wiki:get' path=urlpath.path %}">{{ urlpath.article.current_revision.title }}</a><br/>
+{% endfor %}
+
+{% endblock wiki_contents %}
+
+
+

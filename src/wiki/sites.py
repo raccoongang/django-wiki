@@ -4,7 +4,7 @@ from django.utils.module_loading import import_string
 from wiki.compat import include, url
 from wiki.conf import settings
 from wiki.core.plugins import registry
-from wiki.views import category
+from wiki.views import category, tag
 
 
 class WikiSite:
@@ -44,6 +44,8 @@ class WikiSite:
         self.revision_merge_view = getattr(self, "revision_merge_view", article.MergeView.as_view())
         self.revision_preview_merge_view = getattr(self, "revision_preview_merge_view", article.MergeView.as_view(preview=True))
         self.category_view = getattr(self, "category_view", category.CategoryListView.as_view())
+        self.tag_view = getattr(self, "tag_view", tag.TagIndexView.as_view())
+        self.tag_update_view = getattr(self, "tag_update_view", tag.update_tag)
         self.search_view = getattr(self, "search_view", article.SearchView.as_view())
         self.article_diff_view = getattr(self, "article_diff_view", article.DiffView.as_view())
 
@@ -137,6 +139,8 @@ class WikiSite:
         urlpatterns = [
             # Paths decided by URLs
             url(r'^(?P<path>wiki/|npb/)$', self.category_view, name='all'),
+            url(r'^(?P<path>wiki|npb)/tag/(?P<slug>.+)/$', self.tag_view, name='tagged'),
+            url(r'^ajax/tag_update/$', self.tag_update_view, name='tag_update'),
             url(r'^(?P<path>.+/|)_create/(?P<item_type>category|article)/$', self.article_create_view, name='create'),
             url(r'^(?P<path>.+/|)_delete/$', self.article_delete_view, name='delete'),
             url(r'^(?P<path>.+/|)_deleted/$', self.article_deleted_view, name='deleted'),

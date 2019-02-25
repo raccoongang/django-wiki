@@ -16,6 +16,8 @@ from wiki.conf import settings
 from wiki.core.exceptions import MultipleRootURLs, NoRootURL
 from wiki.decorators import disable_signal_for_loaddata
 from wiki.models.article import Article, ArticleForObject, ArticleRevision
+from taggit.managers import TaggableManager
+
 
 __all__ = [
     'URLPath',
@@ -108,6 +110,8 @@ class URLPath(MPTTModel):
         choices=ROOT_TYPE_CHOICES,
         default=WIKI
     )
+
+    tags = TaggableManager()
 
     def __cached_ancestors(self):
         """

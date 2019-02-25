@@ -53,9 +53,37 @@
           </div>
         </div>
       </div>
-
     </form>
+
+    <form method="POST" class="form-horizontal" id="tag_edit_form">
+      {% csrf_token %}
+      <label>{% trans 'Tags' %}:</label>
+      <select class="js-example-basic-multiple" multiple="multiple">
+        {% for tag in tags %}
+          <option value="{{ tag.slug }}"
+            {% if tag in initial_tags %}
+              selected
+            {% endif %}>
+          {{ tag.name }}
+          </option>
+        {% endfor %}
+      </select>
+      <input type="submit" id="js-submit-tags" value="{% trans 'Зберегти теги' %}"/>
+      <div class="alert alert-success alert-dismissible" role="alert" hidden>
+        {% trans 'Tags have been saved' %}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="alert alert-danger alert-dismissible" role="alert" hidden>
+        {% trans 'Error encountered while saving tags' %}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      </form>
   </div>
+
 
   <div class="col-lg-4" id="wiki-edit-sidebar">
     {% include "wiki/includes/editor_sidebar.html" %}
@@ -86,6 +114,44 @@
     </div>
   </div>
 </div>
+
+<script>
+  $(document).ready(function() {
+
+  $('.js-example-basic-multiple').select2({
+    tags: true
+  });
+
+  function delay () {
+    setTimeout(function () {
+      $('.alert').attr('hidden', true);
+    }, 5000);
+  }
+
+    $('#js-submit-tags').on("click", function(ev) {
+      ev.preventDefault();
+      var selectElem = $('.js-example-basic-multiple');
+      var optionsArr = selectElem.val();
+      var dataStr = optionsArr.join();
+      var url = "{% url 'wiki:tag_update' %}";
+
+      $.ajax({
+        type:'POST',
+        url:url,
+        data:{'tags': dataStr, 'instance': "{{ urlpath.slug }}" },
+        dataType:'json',
+        success: function (data){
+          $('.alert-success').attr('hidden', false);
+          delay();
+        },
+        error:function(err){
+          $('.alert-danger').attr('hidden', false);
+          delay();
+        }
+      })
+    });
+  });
+</script>
 
 {% addtoblock "js" %}
 <script language="javascript">
@@ -135,5 +201,8 @@ var confirmOnPageExit = function (e) {
 };
 </script>
 {% endaddtoblock %}
+
+{% block tags %}
+{% endblock tags %}
 
 {% endblock %}

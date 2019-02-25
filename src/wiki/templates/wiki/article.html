@@ -12,7 +12,9 @@
 
   <div id="article-container">
     {% block atricle_title_and_menu %}
+    {% block article_title %}
     <h1 id="article-title">{{ urlpath.item_type|title }}: {{ article.current_revision.title|title }}</h1>
+    {% endblock article_title %}
     <ul class="nav nav-pills" id="article-menu">
       {% block article_menu %}
         {% if user.is_superuser %}
@@ -28,7 +30,20 @@
     </div>
   </div>
 
-{% endblock %}
+{% block tags %}
+<div class="tags">
+  <p> {% trans "Tags" %}: </p>
+        <ul class="list-inline">
+          {% for tag in tags %}
+            <li><a href="{% url 'wiki:tagged' path=urlpath.root_type slug=tag.slug %}"><span class="label label-default">{{ tag.name }}</span></a></li>
+          {% empty %}
+            <li>No Tags</li>
+          {% endfor %}
+        </ul>
+</div>
+{% endblock tags %}
+
+{% endblock wiki_contents%}
 
 {% block wiki_footer_prepend %}
   <p style="margin-bottom: 10px;"><em>{% trans "This article was last modified:" %} {{ article.current_revision.modified }}</em></p>

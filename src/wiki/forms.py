@@ -21,6 +21,7 @@ from wiki.core.diff import simple_merge
 from wiki.core.plugins.base import PluginSettingsFormMixin
 from wiki.editors import getEditor
 
+
 validate_slug_numbers = RegexValidator(
     r'^[0-9]+$',
     _("A 'slug' cannot consist solely of numbers."),
