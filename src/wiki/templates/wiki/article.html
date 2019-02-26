@@ -66,6 +66,15 @@
                 <div class="comment_text">
                     {{ comment.comment }}
                 </div>
+                <div>
+                  {% if user.is_staff or perms.django_comments.can_moderate %}
+                    <form action="{% url 'comments-delete' comment.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="submit" value="{% trans 'Delete comment' %}">
+                    <input type="hidden" name="next" value="{% url 'wiki:get' urlpath.path %}" />
+                    </form>
+                  {% endif %}
+                </div>
 
                 {% get_comment_form for urlpath as form with comment.id %}
                 <div id="form-comment">
