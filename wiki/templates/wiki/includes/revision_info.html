@@ -7,13 +7,15 @@
 
 
 {% load wiki_tags i18n %}
+{% trans "anonymous (IP not logged)" as anonymous_not_logged %}
+{% trans "anonymous (IP logged)" as anonymous_logged %}
 {% if not revision.ip_address %}
-{% if not hidedate %}{{ revision.created }}{% endif %} {% if not hidenumber %}(#{{ revision.revision_number }}) {% trans "by" %}{% endif %} {% if revision.user %}{{ revision.user }}{% else %}{% if article|can_moderate:user %}{% trans "anonymous (IP not logged)" %}{% else %}{% trans "anonymous (IP logged)" %}{% endif %}{% endif %}
+{% if not hidedate %}{{ revision.created }}{% endif %} {% if not hidenumber %}(#{{ revision.revision_number }}) {% trans "by" %}{% endif %} {% if revision.user %}{{ revision.user }}{% else %}{% if article|can_moderate:user %}{{ anonymous_not_logged }}{% else %}{{anonymous_logged}}{% endif %}{% endif %}
 {% if revision == current_revision %}
   <strong>*</strong>
 {% endif %}
 {% else %}
-{% if not hidedate %}{{ revision.created }}{% endif %} {% if not hidenumber %}(#{{ revision.revision_number }}) {% trans "by" %}{% endif %} {% if revision.user %}{{ revision.user }}{% else %}{% if article|can_moderate:user %}{{ revision.ip_address|default:"anonymous (IP not logged)" }}{% else %}{% trans "anonymous (IP logged)" %}{% endif %}{% endif %}
+{% if not hidedate %}{{ revision.created }}{% endif %} {% if not hidenumber %}(#{{ revision.revision_number }}) {% trans "by" %}{% endif %} {% if revision.user %}{{ revision.user }}{% else %}{% if article|can_moderate:user %}{{ revision.ip_address|default:anonymous_not_logged }}{% else %}{{anonymous_logged}}{% endif %}{% endif %}
 {% if revision == current_revision %}
   <strong>*</strong>
 {% endif %}
