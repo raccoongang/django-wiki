@@ -27,6 +27,7 @@ from wiki.core.utils import object_to_json_response
 from wiki.decorators import get_article
 from wiki.views.mixins import ArticleMixin, SuperUserRequiredMixin
 from wiki.models import URLPath
+from taggit.models import Tag
 
 log = logging.getLogger(__name__)
 
@@ -399,6 +400,8 @@ class Edit(ArticleMixin, FormView):
         kwargs['editor'] = editors.getEditor()
         kwargs['selected_tab'] = 'edit'
         kwargs['sidebar'] = self.sidebar
+        kwargs['tags'] = Tag.objects.all()
+        kwargs['initial_tags'] = self.urlpath.tags.all()
         return super().get_context_data(**kwargs)
 
 
@@ -673,6 +676,7 @@ class Dir(ListView, ArticleMixin):
         kwargs.update(kwargs_listview)
         kwargs['filter_query'] = self.query
         kwargs['filter_form'] = self.filter_form
+        kwargs['tags'] = list(self.urlpath.tags.all())
 
         # Update each child's ancestor cache so the lookups don't have
         # to be repeated.

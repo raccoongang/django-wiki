@@ -1,5 +1,6 @@
 {% extends "wiki/base.html" %}
 {% load wiki_tags i18n sekizai_tags %}
+{% load threadedcomments_tags %}
 
 
 {% block wiki_pagetitle %}{{ article.current_revision.title }}{% endblock %}
@@ -12,7 +13,9 @@
 
   <div id="article-container">
     {% block atricle_title_and_menu %}
-    <h1 id="article-title">{{ urlpath.get_item_type_display }}: {{ article.current_revision.title|title }}</h1>
+      {% block article_title %}
+      <h1 id="article-title">{{ urlpath.get_item_type_display }}: {{ article.current_revision.title|title }}</h1>
+      {% endblock article_title %}
     <ul class="nav nav-pills" id="article-menu">
       {% block article_menu %}
         {% if user.is_superuser %}
@@ -28,7 +31,113 @@
     </div>
   </div>
 
-{% endblock %}
+{% block tags %}
+<div class="tags">
+  <p> {% trans "Tags" %}: </p>
+        <ul class="list-inline">
+          {% for tag in tags %}
+            <li><a href="{% url 'wiki:tagged' path=urlpath.root_type slug=tag.slug %}"><span class="label label-default">{{ tag.name }}</span></a></li>
+          {% empty %}
+            <li>No Tags</li>
+          {% endfor %}
+        </ul>
+</div>
+{% endblock tags %}
+
+{% block comments %}
+<h3>{% trans 'Comments' %}</h3>
+{% get_comment_list for urlpath as comment_list %}
+<div class="comments">
+    {% for comment in comment_list|fill_tree|annotate_tree %}
+        {% if comment.open %}
+            <ul>
+        {% else %}
+            </li>
+        {% endif %}
+        <li class="comment_li" id="c{{ comment.id }}">
+            <div class="comment">
+                <div class="comment_info">
+                    <div class="comment_user">{{ comment.user.get_full_name }}</div>
+                    <div class="comment_data">
+                        {{ comment.submit_date|date:"d.m.Y, H:i" }}
+                        <button type="button" class="js-reply-button" data-id="{{ comment.id }}">{% trans 'Reply' %}</button>
+                    </div>
+                </div>
+                <div class="comment_text">
+                    {{ comment.comment }}
+                </div>
+                <div>
+                  {% if user.is_staff or perms.django_comments.can_moderate %}
+                    <form action="{% url 'comments-delete' comment.id %}" method="post">
+                    {% csrf_token %}
+                    <input type="submit" value="{% trans 'Delete comment' %}">
+                    <input type="hidden" name="next" value="{% url 'wiki:get' urlpath.path %}" />
+                    </form>
+                  {% endif %}
+                </div>
+
+                {% get_comment_form for urlpath as form with comment.id %}
+                <div id="form-comment">
+                    <form action="{% url 'comments-post-comment' %}" method="post" id="js-reply-form-{{ comment.id }}" data-id="{{ comment.id }}" hidden>{% csrf_token %}
+                     {{ form.comment }}
+                     {{ form.content_type }}
+                     {{ form.object_pk }}
+                     {{ form.timestamp }}
+                     {{ form.parent }}
+                     {{ form.security_hash }}
+                        <p>
+                            <input type="text" name="honeypot" class="honeypot">
+                            <input type="hidden" name="next" value="{% url 'wiki:get' urlpath.path %}" />
+                            <input type="submit" value="{% trans 'Submit Comment' %}"/>
+                            <input type="reset" value="{% trans 'Cancel' %}" id="js-cancel-button-{{ comment.id }}" class="js-cancel-button" data-id="{{ comment.id }}">
+                        </p>
+                    </form>
+                </div>
+            </div>
+            {% for close in comment.close %}</li></ul>{% endfor %}
+    {% endfor %}
+</div>
+
+   <button type="button" id="js_open_comment_form">{% trans 'Add comment' %}</button>
+   {% get_comment_form for urlpath as form %}
+   <form action="{% url 'comments-post-comment' %}" method="POST" id="js-add-new-comment-form" hidden>
+     {% csrf_token %}
+     {{ form.comment }}
+     {{ form.content_type }}
+     {{ form.object_pk }}
+     {{ form.timestamp }}
+     {{ form.security_hash }}
+     <input type="text" name="honeypot" class="honeypot">
+     <input type="hidden" name="next" value="{% url 'wiki:get' urlpath.path %}" />
+     <input type="submit" value="{% trans 'Add comment' %}" id="id_submit" />
+     <input type="reset" value="{% trans 'Cancel' %}" id="js_cancel" />
+   </form>
+{% endblock comments %}
+
+<script>
+  $(document).ready(function() {
+    $('.js-reply-button').on("click", function() {
+      var formId = "#js-reply-form-" + $(this).data("id");
+      $(formId).attr('hidden', false);
+    });
+
+    $('.js-cancel-button').on("click", function() {
+      var formId = "#js-reply-form-" + $(this).data("id");
+      $(formId).attr('hidden', true);
+    });
+
+    $('#js_open_comment_form').on("click", function() {
+      $('#js-add-new-comment-form').attr('hidden', false);
+    });
+
+    $('#js_cancel').on("click", function() {
+      $('#js-add-new-comment-form').attr('hidden', true);
+    });
+
+  });
+</script>
+
+{% endblock wiki_contents%}
 
 {% block wiki_footer_prepend %}
   <p style="margin-bottom: 10px;"><em>{% trans "This article was last modified:" %} {{ article.current_revision.modified }}</em></p>
