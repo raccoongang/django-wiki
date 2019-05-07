@@ -179,7 +179,7 @@ class CreateRootForm(forms.Form):
 class MoveForm(forms.Form):
 
     destination = forms.CharField(label=_('Destination'))
-    slug = WikiSlugField(max_length=models.URLPath.SLUG_MAX_LENGTH)
+    slug = WikiSlugField(label=_('Slug'), max_length=models.URLPath.SLUG_MAX_LENGTH)
     redirect = forms.BooleanField(label=_('Redirect pages'),
                                   help_text=_('Create a redirect page for every moved item?'),
                                   required=False)
@@ -523,14 +523,14 @@ class PermissionsForm(PluginSettingsFormMixin, forms.ModelForm):
                 revision = models.ArticleRevision()
                 revision.inherit_predecessor(self.article)
                 revision.set_from_request(self.request)
-                revision.automatic_log = _('Article locked for editing')
+                revision.automatic_log = _('Entry locked for editing')
                 revision.locked = True
                 self.article.add_revision(revision)
             elif not self.cleaned_data['locked'] and article.current_revision.locked:
                 revision = models.ArticleRevision()
                 revision.inherit_predecessor(self.article)
                 revision.set_from_request(self.request)
-                revision.automatic_log = _('Article unlocked for editing')
+                revision.automatic_log = _('Entry unlocked for editing')
                 revision.locked = False
                 self.article.add_revision(revision)
 

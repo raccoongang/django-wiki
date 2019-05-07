@@ -2,7 +2,13 @@
 {% load wiki_tags i18n sekizai_tags %}
 
 
-{% block wiki_pagetitle %}{% trans "Article deleted" %}{% endblock %}
+{% block wiki_pagetitle %}
+{% if urlpath.item_type == 'category' %}
+{% trans "Category deleted" %}
+{% else %}
+{% trans "Article deleted" %}
+{% endif %}
+{% endblock %}
 
 {% block wiki_contents %}
   <style type="text/css">
@@ -11,10 +17,20 @@
       margin-right: 10px;
     }
   </style>
-  <h1 class="page-header">{% trans "Article deleted" %}</h1>
+  <h1 class="page-header">
+    {% if urlpath.item_type == 'category' %}
+    {% trans "Category deleted" %}
+    {% else %}
+    {% trans "Article deleted" %}
+    {% endif %}
+  </h1>
 
   <p class="lead">
-  {% trans "The article you were looking for has been deleted." %}
+    {% if urlpath.item_type == 'category' %}
+    {% trans "The category you were looking for has been deleted." %}
+    {% else %}
+    {% trans "The article you were looking for has been deleted." %}
+    {% endif %}
   </p>
 
   <div class="row">
@@ -23,7 +39,13 @@
     <div class="col-lg-6">
       <div class="well">
         <h2>{% trans "Restore" %}</h2>
-        <p>{% trans "You may restore this article and its children by clicking restore." %}</p>
+        <p>
+          {% if urlpath.item_type == 'category' %}
+          {% trans "You may restore this category and its children by clicking restore." %}
+          {% else %}
+          {% trans "You may restore this article by clicking restore." %}
+          {% endif %}
+        </p>
         <p>
           <a href="?restore=1" class="btn btn-default">
             <span class="fa fa-repeat"></span>
@@ -38,7 +60,13 @@
     <div class="col-lg-6">
       <div class="well">
         <h2>{% trans "Purge deletion" %}</h2>
-        <p>{% trans "You may remove this article and any children permanently and free their slugs by clicking the below button. This action cannot be undone." %}</p>
+        <p>
+          {% if urlpath.item_type == 'category' %}
+          {% trans "You may remove this category and any children permanently and free their slugs by clicking the below button. This action cannot be undone." %}
+          {% else %}
+          {% trans "You may remove this article permanently and free its slug by clicking the below button. This action cannot be undone." %}
+          {% endif %}
+        </p>
         <form method="POST" class="form form-inline">
           {% csrf_token %}
           {% wiki_form purge_form %}

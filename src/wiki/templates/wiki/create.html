@@ -28,7 +28,13 @@
   {% endaddtoblock %}
 
   {% include "wiki/includes/editormedia.html" %}
-  <h1 class="page-header">{% blocktrans %}Add new {{ item_type }}{% endblocktrans %}</h1>
+  <h1 class="page-header">
+    {% if item_type == "category" %}
+    {% trans "Add new category" %}
+    {% else %}
+    {% trans "Add new article" %}
+    {% endif %}
+  </h1>
 
   <form method="POST" class="form-horizontal">
     {% wiki_form create_form %}
@@ -41,7 +47,11 @@
         </a>
         <button type="submit" name="save_changes" class="btn btn-primary">
           <span class="fa fa-plus"></span>
-          {% blocktrans %}Create {{ item_type }}{% endblocktrans %}
+          {% if item_type == "category" %}
+          {% trans "Create category" %}
+          {% else %}
+          {% trans "Create article" %}
+          {% endif %}
         </button>
       </div>
     </div>
