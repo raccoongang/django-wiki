@@ -83,9 +83,7 @@ def get_article(func=None, can_read=True, can_write=False,  # noqa: max-complexi
                     path = "/".join(pathlist[:-1])
                     parent = models.URLPath.get_by_path(path)
                     return HttpResponseRedirect(
-                        reverse(
-                            "wiki:create", kwargs={'path': parent.path, 'item_type': 'category'}) +
-                        "?slug=%s" % pathlist[-1].lower())
+                        reverse("wiki:all", kwargs={'path': parent.path}))
                 except models.URLPath.DoesNotExist:
                     return HttpResponseNotFound(
                         render_to_string(

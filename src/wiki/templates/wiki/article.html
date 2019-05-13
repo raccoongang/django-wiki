@@ -1,6 +1,7 @@
 {% extends "wiki/base.html" %}
 {% load wiki_tags i18n sekizai_tags %}
 {% load threadedcomments_tags %}
+{% load like_tags %}
 
 
 {% block wiki_pagetitle %}{{ article.current_revision.title }}{% endblock %}
@@ -44,6 +45,12 @@
 </div>
 {% endblock tags %}
 
+{% block articlelikes %}
+  {% if urlpath.item_type == 'article' %}
+    {% likes 'URLPath' urlpath.id %}
+  {% endif %}
+{% endblock articlelikes %}
+
 {% block comments %}
 <h3>{% trans 'Comments' %}</h3>
 {% get_comment_list for urlpath as comment_list %}
@@ -55,6 +62,9 @@
             </li>
         {% endif %}
         <li class="comment_li" id="c{{ comment.id }}">
+          {% block commentlikes %}
+            {% likes 'ThreadedComment' comment.id %}
+          {% endblock commentlikes %}
             <div class="comment">
                 <div class="comment_info">
                     <div class="comment_user">{{ comment.user.get_full_name }}</div>
@@ -134,9 +144,30 @@
       $('#js-add-new-comment-form').attr('hidden', true);
     });
 
-  });
+    $('.liker').click(function(ev){
+          ev.preventDefault();
+          var contentType = $(this).data('contenttype');
+          var id = $(this).data('id');
+          $.ajax({
+                   type: "POST",
+                   url: "{% url 'likes:like' %}",
+                   data: {'content_type': contentType, 'id': id, 'csrfmiddlewaretoken': '{{ csrf_token }}'},
+                   dataType: "json",
+                   success: function(response) {
+                      var $likeContainer = $("#js-" + contentType + id);
+                      $likeContainer.find('.js-like-text').text(response.likes_count);
+                      var $starIcon = $likeContainer.find('i');
+                      if ($starIcon.attr('class') == "fa fa-star-o") {
+                          $starIcon.attr('class', "fa fa-star");
+                      } else {
+                          $starIcon.attr('class', "fa fa-star-o");
+                      }
+                },
+                    error: function(rs, e) {}
+          });
+    })
+});
 </script>
-
 {% endblock wiki_contents%}
 
 {% block wiki_footer_prepend %}
