@@ -32,6 +32,12 @@
     </div>
   </div>
 
+{% block articlelikes %}
+  {% if urlpath.item_type == 'article' %}
+    {% likes 'URLPath' urlpath.id %}
+  {% endif %}
+{% endblock articlelikes %}
+
 {% block tags %}
 <div class="tags">
   <p> {% trans "Tags" %}: </p>
@@ -44,12 +50,6 @@
         </ul>
 </div>
 {% endblock tags %}
-
-{% block articlelikes %}
-  {% if urlpath.item_type == 'article' %}
-    {% likes 'URLPath' urlpath.id %}
-  {% endif %}
-{% endblock articlelikes %}
 
 {% block comments %}
 <h3>{% trans 'Comments' %}</h3>
