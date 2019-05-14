@@ -32,6 +32,8 @@
     </div>
   </div>
 
+{% if urlpath.root_type == 'wiki' %}
+
 {% block articlelikes %}
   {% if urlpath.item_type == 'article' %}
     {% likes 'URLPath' urlpath.id %}
@@ -123,6 +125,8 @@
      <input type="reset" value="{% trans 'Cancel' %}" id="js_cancel" />
    </form>
 {% endblock comments %}
+
+{% endif %}
 
 <script>
   $(document).ready(function() {

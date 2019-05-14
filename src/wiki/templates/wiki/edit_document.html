@@ -1,0 +1,91 @@
+{% extends "wiki/article.html" %}
+{% load wiki_tags i18n sekizai_tags static %}
+
+
+{% block wiki_pagetitle %}{% trans "Edit" %}: {{ article.current_revision.title }}{% endblock %}
+
+{% block wiki_contents_tab %}
+
+  {% addtoblock "js" %}
+  <script type="text/javascript" src="{% static "admin/js/urlify.js" %}"></script>
+  <script type="text/javascript">
+  {% if not create_form.slug.value %}
+  //<![CDATA[
+  (function($) {
+	  $(document).ready(function (){
+		  $("#id_title").keyup(function () {
+			  var e = $("#id_slug")[0];
+			  if(!e._changed) {
+			    slug = URLify(this.value, 50);
+				  e.value = slug;
+			  }
+	      });
+	  });
+  })(jQuery);
+  //]]>
+  {% endif %}
+  </script>
+  {% endaddtoblock %}
+
+  {% include "wiki/includes/editormedia.html" %}
+  <h1 class="page-header">
+    {% if item_type == "category" %}
+    {% trans "Edit category" %}
+    {% else %}
+    {% trans "Edit document" %}
+    {% endif %}
+  </h1>
+
+  <form method="POST" enctype="multipart/form-data" class="form-horizontal" >
+    {% csrf_token %}
+    {% for field in edit_form %}
+      {% if field.name != 'content' and field.name != 'summary' %}
+        {# {% if field.name != 'current_revision' %}{{ field.label }}<br/>{% endif %} #}
+        {% if field.name == 'title' %}
+          {{ field.label }}<br/>
+        {% elif field.name == 'npb_file' and item_type == 'article' %}
+          {{ field.label }}<br/>
+        {% else %}
+        {% endif %}
+      {{ field }}
+      {% endif %}
+    {% endfor %}
+    <div class="form-group form-actions">
+      <div class="col-lg-2"></div>
+      <div class="col-lg-10">
+        <a href="{% url 'wiki:get' path=parent_urlpath.path %}" class="btn btn-default">
+          <span class="fa fa-arrow-left"></span>
+          {% trans "Go back" %}
+        </a>
+            <button class="btn btn-primary" type="submit" name="save" value="1" id="id_save">
+              <span class="fa fa-check"></span>
+              {% trans "Save changes" %}
+            </button>
+            <div class="btn-toolbar pull-right">
+              {% if user.is_authenticated and urlpath.path %}
+              <a href="{% url 'wiki:move' path=urlpath.path article_id=article.id %}" class="btn btn-warning ">
+                <span class="fa fa-random"></span>
+                {% trans "Move" %}
+              </a>
+              {% endif %}
+              {% if article|can_delete:user %}
+              <a href="{% url 'wiki:delete' path=urlpath.path article_id=article.id %}" class="btn btn-danger">
+                <span class="fa fa-trash-o"></span>
+                {% trans "Delete" %}
+              </a>
+              {% endif %}
+            </div>
+      </div>
+    </div>
+  </form>
+
+{% block articlelikes %}
+{% endblock articlelikes %}
+
+{% block tags %}
+{% endblock tags %}
+
+{% block comments %}
+{% endblock comments %}
+
+{% endblock %}

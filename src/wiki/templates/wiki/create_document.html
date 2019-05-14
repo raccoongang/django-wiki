@@ -1,0 +1,73 @@
+{% extends "wiki/base.html" %}
+{% load wiki_tags i18n sekizai_tags static %}
+
+
+{% block wiki_pagetitle %}{% trans "Add new document" %}{% endblock %}
+
+{% block wiki_contents %}
+
+  {% addtoblock "js" %}
+  <script type="text/javascript" src="{% static "admin/js/urlify.js" %}"></script>
+  <script type="text/javascript">
+  {% if not create_form.slug.value %}
+  //<![CDATA[
+  (function($) {
+	  $(document).ready(function (){
+		  $("#id_title").keyup(function () {
+			  var e = $("#id_slug")[0];
+			  if(!e._changed) {
+			    slug = URLify(this.value, 50);
+				  e.value = slug;
+			  }
+	      });
+	  });
+  })(jQuery);
+  //]]>
+  {% endif %}
+  </script>
+  {% endaddtoblock %}
+
+  {% include "wiki/includes/editormedia.html" %}
+  <h1 class="page-header">
+    {% if item_type == "category" %}
+    {% trans "Add new category" %}
+    {% else %}
+    {% trans "Add new document" %}
+    {% endif %}
+  </h1>
+
+  <form method="POST" enctype="multipart/form-data" class="form-horizontal">
+    {# {% wiki_form create_form %} #}
+    {% csrf_token %}
+    {% for field in create_form %}
+      {% if field.name != 'content' and field.name != 'summary' %}
+        {% if field.name == 'title' or field.name == 'slug' %}
+          {{ field.label }}<br/>
+        {% elif field.name == 'npb_file' and item_type == 'article' %}
+          {{ field.label }}<br/>
+        {% else %}
+        {% endif %}
+        {# {% if field.name != 'item_type' and field.name != 'root_type' %}{{ field.label }}<br/>{% endif %} #}
+        {{ field }}
+      {% endif %}
+    {% endfor %}
+    <div class="form-group form-actions">
+      <div class="col-lg-2"></div>
+      <div class="col-lg-10">
+        <a href="{% url 'wiki:get' path=parent_urlpath.path %}" class="btn btn-default">
+          <span class="fa fa-arrow-left"></span>
+          {% trans "Go back" %}
+        </a>
+        <button type="submit" name="save_changes" class="btn btn-primary">
+          <span class="fa fa-plus"></span>
+          {% if item_type == "category" %}
+          {% trans "Create category" %}
+          {% else %}
+          {% trans "Create document" %}
+          {% endif %}
+        </button>
+      </div>
+    </div>
+  </form>
+
+{% endblock %}
