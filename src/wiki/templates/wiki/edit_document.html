@@ -29,7 +29,7 @@
 
   {% include "wiki/includes/editormedia.html" %}
   <h1 class="page-header">
-    {% if item_type == "category" %}
+    {% if urlpath.item_type == "category" %}
     {% trans "Edit category" %}
     {% else %}
     {% trans "Edit document" %}

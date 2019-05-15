@@ -385,12 +385,12 @@ class Edit(ArticleMixin, FormView):
         revision.user_message = form.cleaned_data['summary']
         revision.deleted = False
         revision.set_from_request(self.request)
-        self.urlpath.npb_file = form.cleaned_data['npb_file']
+        self.urlpath.npb_file = form.cleaned_data['npb_file'] if form.cleaned_data['npb_file'] else None
         self.urlpath.save()
         self.article.add_revision(revision)
         msg = _('A new revision of the category was successfully added.') if self.urlpath.item_type == URLPath.CATEGORY else _(
-            'A new revision of the article was successfully added.'
-        )
+            'The document was successfully updated.'
+        ) if self.urlpath.root_type == URLPath.NPB else _('A new revision of the article was successfully added.')
         messages.success(self.request, msg)
         return self.get_success_url()
 
