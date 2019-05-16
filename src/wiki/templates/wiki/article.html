@@ -42,15 +42,21 @@
 
 {% if urlpath.root_type == 'wiki' %}
 
-{% block articlelikes %}
-  {% if urlpath.item_type == 'article' %}
-    {% likes 'URLPath' urlpath.id %}
-  {% endif %}
-{% endblock articlelikes %}
+<div class="article-like-holder">
+  {% block articlelikes %}
+    {% if urlpath.item_type == 'article' %}
+      {% likes 'URLPath' urlpath.id %}
+      <span>Мені подобається</span>
+    {% endif %}
+  {% endblock articlelikes %}
+</div>
 
 {% block tags %}
 <div class="tags">
-  <p> {% trans "Tags" %}: </p>
+  <div class="title">
+    <i class="fa fa-tags" aria-hidden="true"></i>
+    <h4>{% trans "Tags" %}:</h4>
+  </div>
         <ul class="list-inline">
           {% for tag in tags %}
             <li><a href="{% url 'wiki:tagged' path=urlpath.root_type slug=tag.slug %}"><span class="label label-default">{{ tag.name }}</span></a></li>
@@ -62,38 +68,41 @@
 {% endblock tags %}
 
 {% block comments %}
-<h3>{% trans 'Comments' %}</h3>
+<div class="title">
+  <i class="fa fa-comments" aria-hidden="true"></i>
+  <h4>{% trans 'Comments' %}</h4>
+</div>
 {% get_comment_list for urlpath as comment_list %}
 <div class="comments">
     {% for comment in comment_list|fill_tree|annotate_tree %}
         {% if comment.open %}
-            <ul>
+            <ul class="list-unstyled">
         {% else %}
             </li>
         {% endif %}
         <li class="comment_li" id="c{{ comment.id }}">
-          {% block commentlikes %}
-            {% likes 'ThreadedComment' comment.id %}
-          {% endblock commentlikes %}
             <div class="comment">
                 <div class="comment_info">
-                    <div class="comment_user">{{ comment.user.get_full_name }}</div>
+                    <div class="comment_user"><b>{{ comment.user.get_full_name }}</b></div>
                     <div class="comment_data">
                         {{ comment.submit_date|date:"d.m.Y, H:i" }}
-                        <button type="button" class="js-reply-button" data-id="{{ comment.id }}">{% trans 'Reply' %}</button>
                     </div>
                 </div>
                 <div class="comment_text">
                     {{ comment.comment }}
                 </div>
-                <div>
+                <div class="delete-comment-block">
                   {% if user.is_staff or perms.django_comments.can_moderate %}
                     <form action="{% url 'comments-delete' comment.id %}" method="post">
-                    {% csrf_token %}
-                    <input type="submit" value="{% trans 'Delete comment' %}">
-                    <input type="hidden" name="next" value="{% url 'wiki:get' urlpath.path %}" />
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-default" type="submit"><i class="fa fa-trash-o" aria-hidden="true"></i> {% trans 'Delete comment' %}</button>
+                      <input type="hidden" name="next" value="{% url 'wiki:get' urlpath.path %}" />
                     </form>
                   {% endif %}
+                  <button type="button" class="js-reply-button btn btn-sm btn-default" data-id="{{ comment.id }}"><i class="fa fa-reply" aria-hidden="true"></i> {% trans 'Reply' %}</button>
+                  {% block commentlikes %}
+                  {% likes 'ThreadedComment' comment.id %}
+                  {% endblock commentlikes %}
                 </div>
 
                 {% get_comment_form for urlpath as form with comment.id %}
@@ -106,10 +115,10 @@
                      {{ form.parent }}
                      {{ form.security_hash }}
                         <p>
-                            <input type="text" name="honeypot" class="honeypot">
+                            <input type="hidden" name="honeypot" class="honeypot">
                             <input type="hidden" name="next" value="{% url 'wiki:get' urlpath.path %}" />
-                            <input type="submit" value="{% trans 'Submit Comment' %}"/>
-                            <input type="reset" value="{% trans 'Cancel' %}" id="js-cancel-button-{{ comment.id }}" class="js-cancel-button" data-id="{{ comment.id }}">
+                            <input class="js-cancel-button btn btn-primary" type="submit" value="{% trans 'Submit Comment' %}"/>
+                            <input class="js-cancel-button btn btn-default" type="reset" value="{% trans 'Cancel' %}" id="js-cancel-button-{{ comment.id }}" data-id="{{ comment.id }}">
                         </p>
                     </form>
                 </div>
@@ -118,19 +127,23 @@
     {% endfor %}
 </div>
 
-   <button type="button" id="js_open_comment_form">{% trans 'Add comment' %}</button>
+   <button type="button" id="js_open_comment_form" class="btn btn-primary">{% trans 'Add comment' %}</button>
    {% get_comment_form for urlpath as form %}
    <form action="{% url 'comments-post-comment' %}" method="POST" id="js-add-new-comment-form" hidden>
+     <div class="form-group">
      {% csrf_token %}
      {{ form.comment }}
      {{ form.content_type }}
      {{ form.object_pk }}
      {{ form.timestamp }}
      {{ form.security_hash }}
-     <input type="text" name="honeypot" class="honeypot">
+     </div>
+     <div class="form-group">
+       <input type="hidden" name="honeypot" class="honeypot">
      <input type="hidden" name="next" value="{% url 'wiki:get' urlpath.path %}" />
-     <input type="submit" value="{% trans 'Add comment' %}" id="id_submit" />
-     <input type="reset" value="{% trans 'Cancel' %}" id="js_cancel" />
+       <input class="btn btn-primary" type="submit" value="{% trans 'Add comment' %}" id="id_submit" />
+       <input class="btn btn-default" type="reset" value="{% trans 'Cancel' %}" id="js_cancel" />
+     </div>
    </form>
 {% endblock comments %}
 
