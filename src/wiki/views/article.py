@@ -25,7 +25,7 @@ from wiki.core.paginator import WikiPaginator
 from wiki.core.plugins import registry as plugin_registry
 from wiki.core.utils import object_to_json_response
 from wiki.decorators import get_article
-from wiki.views.mixins import ArticleMixin, SuperUserRequiredMixin
+from wiki.views.mixins import ArticleMixin, SuperUserRequiredMixin, RoleRequiredMixin
 from wiki.models import URLPath
 from taggit.models import Tag
 
@@ -45,7 +45,7 @@ class ArticleView(ArticleMixin, TemplateView):
         return ArticleMixin.get_context_data(self, **kwargs)
 
 
-class Create(SuperUserRequiredMixin, FormView, ArticleMixin):
+class Create(RoleRequiredMixin, FormView, ArticleMixin):
 
     form_class = forms.CreateForm
     template_name = "wiki/create.html"
@@ -129,7 +129,7 @@ class Create(SuperUserRequiredMixin, FormView, ArticleMixin):
         return c
 
 
-class Delete(SuperUserRequiredMixin, FormView, ArticleMixin):
+class Delete(RoleRequiredMixin, FormView, ArticleMixin):
 
     form_class = forms.DeleteForm
     template_name = "wiki/delete.html"
@@ -248,7 +248,7 @@ class Delete(SuperUserRequiredMixin, FormView, ArticleMixin):
         return super().get_context_data(**kwargs)
 
 
-class Edit(ArticleMixin, FormView):
+class Edit(RoleRequiredMixin, ArticleMixin, FormView):
 
     """Edit an article and process sidebar plugins."""
 
@@ -405,7 +405,7 @@ class Edit(ArticleMixin, FormView):
         return super().get_context_data(**kwargs)
 
 
-class Move(SuperUserRequiredMixin, ArticleMixin, FormView):
+class Move(RoleRequiredMixin, ArticleMixin, FormView):
 
     form_class = forms.MoveForm
     template_name = "wiki/move.html"

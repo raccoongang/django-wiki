@@ -5,6 +5,7 @@ from django.http import HttpResponseNotFound
 from django.views.generic.base import TemplateResponseMixin
 from wiki.conf import settings
 from wiki.core.plugins import registry
+from wiki.models import URLPath
 
 log = logging.getLogger(__name__)
 
@@ -51,5 +52,17 @@ class SuperUserRequiredMixin(AccessMixin):
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_superuser:
+            return self.handle_no_permission()
+        return super().dispatch(request, *args, **kwargs)
+
+
+class RoleRequiredMixin(AccessMixin):
+    def handle_no_permission(self):
+        return HttpResponseNotFound('<h1>Page not found</h1>')
+
+    def dispatch(self, request, *args, **kwargs):
+        root_type = URLPath.WIKI if request.path.startswith('/wiki/') else URLPath.NPB
+        # import pdb;pdb.set_trace()
+        if not getattr(request.user, f'is_{root_type}_moderator') and not request.user.is_superuser:
             return self.handle_no_permission()
         return super().dispatch(request, *args, **kwargs)
