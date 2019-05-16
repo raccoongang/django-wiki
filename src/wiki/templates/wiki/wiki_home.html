@@ -14,7 +14,7 @@
 
 <form class="form-search directory-toolbar">
 <div class="well well-small">
-  {% if user.is_superuser %}
+  {% if urlpath.root_type in user.permission_list %}
   <div class="btn-group pull-left">
     <a href="{% url 'wiki:create' path=urlpath.path item_type='category' %}" class="btn btn-default">
       <span class="fa fa-plus"></span>
