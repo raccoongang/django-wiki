@@ -53,8 +53,8 @@ class Create(SuperUserRequiredMixin, FormView, ArticleMixin):
     @method_decorator(get_article(can_write=True, can_create=True))
     def dispatch(self, request, article, *args, **kwargs):
         urlpath = kwargs.get('urlpath')
-        if urlpath.root_type == URLPath.NPB:
-            self.template_name = "wiki/create_document.html"
+        if urlpath.root_type == URLPath.NPB and kwargs.get('item_type') == URLPath.ARTICLE:
+            self.template_name = "wiki/document_create_edit.html"
         return super().dispatch(request, article, *args, **kwargs)
 
     def get_form(self, form_class=None):
@@ -79,6 +79,10 @@ class Create(SuperUserRequiredMixin, FormView, ArticleMixin):
                 'title': 'Lowercase letters, numbers, hyphens and underscores' if not settings.URL_CASE_SENSITIVE else 'Letters, numbers, hyphens and underscores',
             }
         )
+        if kwargs['initial'].get('root_type') == URLPath.NPB:
+            form.fields['summary'].widget = forms.HiddenInput()
+            if kwargs['initial'].get('item_type') == URLPath.ARTICLE:
+                form.fields['content'].widget = forms.HiddenInput()
         return form
 
     def form_valid(self, form):
@@ -264,8 +268,8 @@ class Edit(ArticleMixin, FormView):
         self.sidebar_plugins = plugin_registry.get_sidebar()
         self.sidebar = []
         urlpath = kwargs.get('urlpath')
-        if urlpath.root_type == URLPath.NPB:
-            self.template_name = "wiki/edit_document.html"
+        if urlpath.root_type == URLPath.NPB and urlpath.item_type == URLPath.ARTICLE:
+            self.template_name = "wiki/document_create_edit.html"
         return super().dispatch(request, article, *args, **kwargs)
 
     def get_initial(self):
@@ -294,7 +298,12 @@ class Edit(ArticleMixin, FormView):
             kwargs['data'] = None
             kwargs['files'] = None
             kwargs['no_clean'] = True
-        return form_class(self.request, self.article.current_revision, **kwargs)
+        form = form_class(self.request, self.article.current_revision, **kwargs)
+        if self.urlpath.root_type == URLPath.NPB:
+            form.fields['summary'].widget = forms.HiddenInput()
+            if self.urlpath.item_type == URLPath.ARTICLE:
+                form.fields['content'].widget = forms.HiddenInput()
+        return form
 
     def get_sidebar_form_classes(self):
         """Returns dictionary of form classes for the sidebar. If no form class is

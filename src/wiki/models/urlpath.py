@@ -1,7 +1,6 @@
 import logging
 import warnings
 
-from django.conf import settings as django_settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site

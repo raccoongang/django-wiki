@@ -219,6 +219,7 @@ class EditForm(forms.Form, SpamProtectionMixin):
         self.preview = kwargs.pop('preview', False)
         self.initial_revision = current_revision
         self.presumed_revision = None
+        self.urlpath = current_revision.article.urlpath_set.first()
         if current_revision:
             initial = {'content': current_revision.content,
                        'title': current_revision.title,
@@ -252,13 +253,12 @@ class EditForm(forms.Form, SpamProtectionMixin):
                 else:
                     # Always pass as kwarg
                     kwargs['data'] = data
-            initial.update({'npb_file': current_revision.article.urlpath_set.first().npb_file})
+            initial.update({'npb_file': self.urlpath.npb_file})
             kwargs['initial'] = initial
 
         super().__init__(*args, **kwargs)
 
-        if (current_revision.article.urlpath_set.first().root_type == models.URLPath.WIKI or
-                current_revision.article.urlpath_set.first().item_type == models.URLPath.CATEGORY):
+        if (self.urlpath.root_type == models.URLPath.WIKI or self.urlpath.item_type == models.URLPath.CATEGORY):
             self.fields['npb_file'].widget = forms.HiddenInput()
 
     def clean_title(self):
@@ -281,7 +281,7 @@ class EditForm(forms.Form, SpamProtectionMixin):
                 gettext(
                     'While you were editing, someone else changed the revision. Your contents have been automatically merged with the new contents. Please review the text below.'))
         if ('title' in cd) and cd['title'] == self.initial_revision.title and cd[
-                'content'] == self.initial_revision.content and cd['npb_file'] == self.initial_revision.article.urlpath_set.first().npb_file:
+                'content'] == self.initial_revision.content and cd['npb_file'] == self.urlpath.npb_file:
             raise forms.ValidationError(gettext('No changes made. Nothing to save.'))
         self.check_spam()
         return cd

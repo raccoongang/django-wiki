@@ -55,6 +55,7 @@
       </div>
     </form>
 
+    {% if urlpath.root_type == 'wiki' %}
     <form method="POST" class="form-horizontal" id="tag_edit_form">
       {% csrf_token %}
       <label>{% trans 'Tags' %}:</label>
@@ -85,6 +86,7 @@
         </button>
       </div>
     </form>
+    {% endif %}
   </div>
 
 

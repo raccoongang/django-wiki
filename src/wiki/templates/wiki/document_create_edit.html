@@ -2,9 +2,26 @@
 {% load wiki_tags i18n sekizai_tags static %}
 
 
-{% block wiki_pagetitle %}{% trans "Edit" %}: {{ article.current_revision.title }}{% endblock %}
+{% block wiki_pagetitle %}{% trans "Add new document" %}{% endblock %}
 
-{% block wiki_contents_tab %}
+{% block wiki_breadcrumbs %}
+{% endblock wiki_breadcrumbs %}
+
+{% block wiki_contents %}
+  {% if edit_form %}
+    {% block atricle_title_and_menu %}
+      {% block article_title %}
+        <h1 id="article-title">{% trans 'Document' %}: {{ article.current_revision.title|title }}</h1>
+      {% endblock article_title %}
+    <ul class="nav nav-pills" id="article-menu">
+      {% block article_menu %}
+        {% if user.is_superuser %}
+            {% include "wiki/includes/document_menu.html" %}
+        {% endif %}
+      {% endblock article_menu %}
+    </ul>
+    {% endblock atricle_title_and_menu %}
+  {% endif %}
 
   {% addtoblock "js" %}
   <script type="text/javascript" src="{% static "admin/js/urlify.js" %}"></script>
@@ -29,30 +46,39 @@
 
   {% include "wiki/includes/editormedia.html" %}
   <h1 class="page-header">
-    {% if urlpath.item_type == "category" %}
-    {% trans "Edit category" %}
-    {% else %}
-    {% trans "Edit document" %}
+    {% if create_form %}
+      {% trans "Add new document" %}
     {% endif %}
   </h1>
 
-  <form method="POST" enctype="multipart/form-data" class="form-horizontal" >
+  <form method="POST" enctype="multipart/form-data" class="form-horizontal">
+    {# {% wiki_form create_form %} #}
     {% csrf_token %}
-    {% for field in edit_form %}
-      {% if field.name == 'content' and urlpath.item_type == 'category' %}
-        {{ field.label }}<br/>{{ field }}
-      {% elif field.name == 'title' %}
-        {{ field.label }}<br/>{{ field }}
-      {% elif field.name == 'npb_file' and urlpath.item_type == 'article' %}
-        {{ field.label }}<br/>{{ field }}
-      {% elif field.name == 'item_type' or field.name == 'root_type' or field.name == 'current_revision' %}
-        {{ field }}
-      {% endif %}
-    {% endfor %}
+    {% if create_form %}
+      {{ create_form.as_p }}
     <div class="form-group form-actions">
       <div class="col-lg-2"></div>
       <div class="col-lg-10">
         <a href="{% url 'wiki:get' path=parent_urlpath.path %}" class="btn btn-default">
+          <span class="fa fa-arrow-left"></span>
+          {% trans "Go back" %}
+        </a>
+        <button type="submit" name="save_changes" class="btn btn-primary">
+          <span class="fa fa-plus"></span>
+          {% if item_type == "category" %}
+          {% trans "Create category" %}
+          {% else %}
+          {% trans "Create document" %}
+          {% endif %}
+        </button>
+      </div>
+    </div>
+    {% elif edit_form %}
+      {{ edit_form.as_p }}
+     <div class="form-group form-actions">
+      <div class="col-lg-2"></div>
+      <div class="col-lg-10">
+        <a href="{% url 'wiki:get' path=urlpath.path %}" class="btn btn-default">
           <span class="fa fa-arrow-left"></span>
           {% trans "Go back" %}
         </a>
@@ -76,15 +102,7 @@
             </div>
       </div>
     </div>
+    {% endif %}
   </form>
-
-{% block articlelikes %}
-{% endblock articlelikes %}
-
-{% block tags %}
-{% endblock tags %}
-
-{% block comments %}
-{% endblock comments %}
 
 {% endblock %}
