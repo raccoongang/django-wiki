@@ -39,15 +39,14 @@
   <form method="POST" enctype="multipart/form-data" class="form-horizontal" >
     {% csrf_token %}
     {% for field in edit_form %}
-      {% if field.name != 'content' and field.name != 'summary' %}
-        {# {% if field.name != 'current_revision' %}{{ field.label }}<br/>{% endif %} #}
-        {% if field.name == 'title' %}
-          {{ field.label }}<br/>
-        {% elif field.name == 'npb_file' and item_type == 'article' %}
-          {{ field.label }}<br/>
-        {% else %}
-        {% endif %}
-      {{ field }}
+      {% if field.name == 'content' and urlpath.item_type == 'category' %}
+        {{ field.label }}<br/>{{ field }}
+      {% elif field.name == 'title' %}
+        {{ field.label }}<br/>{{ field }}
+      {% elif field.name == 'npb_file' and urlpath.item_type == 'article' %}
+        {{ field.label }}<br/>{{ field }}
+      {% elif field.name == 'item_type' or field.name == 'root_type' or field.name == 'current_revision' %}
+        {{ field }}
       {% endif %}
     {% endfor %}
     <div class="form-group form-actions">

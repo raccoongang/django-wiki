@@ -40,16 +40,15 @@
     {# {% wiki_form create_form %} #}
     {% csrf_token %}
     {% for field in create_form %}
-      {% if field.name != 'content' and field.name != 'summary' %}
-        {% if field.name == 'title' or field.name == 'slug' %}
-          {{ field.label }}<br/>
-        {% elif field.name == 'npb_file' and item_type == 'article' %}
-          {{ field.label }}<br/>
-        {% else %}
-        {% endif %}
-        {# {% if field.name != 'item_type' and field.name != 'root_type' %}{{ field.label }}<br/>{% endif %} #}
-        {{ field }}
-      {% endif %}
+    {% if field.name == 'content' and item_type == 'category' %}
+      {{ field.label }}<br/>{{ field }}
+    {% elif field.name == 'title' or field.name == 'slug' %}
+      {{ field.label }}<br/>{{ field }}
+    {% elif field.name == 'npb_file' and item_type == 'article' %}
+      {{ field.label }}<br/>{{ field }}
+    {% elif field.name == 'item_type' or field.name == 'root_type' %}
+      {{ field }}
+    {% endif %}
     {% endfor %}
     <div class="form-group form-actions">
       <div class="col-lg-2"></div>
