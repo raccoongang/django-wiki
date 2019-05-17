@@ -627,7 +627,7 @@ class Source(ArticleMixin, TemplateView):
         return ArticleMixin.get_context_data(self, **kwargs)
 
 
-class History(ListView, ArticleMixin):
+class History(RoleRequiredMixin, ListView, ArticleMixin):
 
     template_name = "wiki/history.html"
     allow_empty = True
@@ -767,7 +767,7 @@ class Plugin(View):
         raise Http404()
 
 
-class Settings(ArticleMixin, TemplateView):
+class Settings(RoleRequiredMixin, ArticleMixin, TemplateView):
 
     permission_form_class = forms.PermissionsForm
     template_name = "wiki/settings.html"

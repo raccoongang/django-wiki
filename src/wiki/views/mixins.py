@@ -62,7 +62,6 @@ class RoleRequiredMixin(AccessMixin):
 
     def dispatch(self, request, *args, **kwargs):
         root_type = URLPath.WIKI if request.path.startswith('/wiki/') else URLPath.NPB
-        # import pdb;pdb.set_trace()
-        if not getattr(request.user, f'is_{root_type}_moderator') and not request.user.is_superuser:
+        if root_type not in request.user.permission_list:
             return self.handle_no_permission()
         return super().dispatch(request, *args, **kwargs)

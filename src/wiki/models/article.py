@@ -71,16 +71,16 @@ class Article(models.Model):
 
     # PERMISSIONS
     def can_read(self, user):
-        return permissions.can_read(self, user)
+        return True  # permissions.can_read(self, user)
 
     def can_write(self, user):
-        return permissions.can_write(self, user)
+        return self.urlpath_set.first().root_type in user.permission_list
 
     def can_delete(self, user):
-        return permissions.can_delete(self, user)
+        return self.can_write(user)
 
     def can_moderate(self, user):
-        return permissions.can_moderate(self, user)
+        return self.can_write(user)
 
     def can_assign(self, user):
         return permissions.can_assign(self, user)
