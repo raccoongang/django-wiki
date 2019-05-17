@@ -6,4 +6,10 @@
 
   {% wiki_render article %}
 
+  {% if urlpath.root_type == 'npb' and urlpath.item_type == 'article' %}
+    {% if urlpath.npb_file %}
+      <iframe src="/static/js/viewerjs/index.html#../../../media/{{ urlpath.npb_file }}" width="700" height="550" allowfullscreen="" webkitallowfullscreen=""></iframe>
+    {% endif %}
+  {% endif %}
+
 {% endblock %}

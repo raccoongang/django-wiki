@@ -113,6 +113,8 @@ class URLPath(MPTTModel):
 
     tags = TaggableManager()
 
+    npb_file = models.FileField(upload_to='npb', blank=True, null=True)
+
     def __cached_ancestors(self):
         """
         This returns the ancestors of this urlpath. These ancestors are hopefully
@@ -299,6 +301,7 @@ class URLPath(MPTTModel):
             slug,
             item_type,
             root_type,
+            npb_file,
             site=None,
             title="Root",
             article_kwargs={},
@@ -324,7 +327,8 @@ class URLPath(MPTTModel):
             slug=slug,
             article=article,
             item_type=item_type,
-            root_type=root_type)
+            root_type=root_type,
+            npb_file=npb_file)
         article.add_object_relation(newpath)
         return newpath
 
@@ -339,7 +343,8 @@ class URLPath(MPTTModel):
             content,
             summary,
             item_type,
-            root_type):
+            root_type,
+            npb_file):
         """
         Creates a new URLPath, using meta data from ``request`` and copies in
         the permissions from ``perm_article``.
@@ -360,6 +365,7 @@ class URLPath(MPTTModel):
             slug,
             item_type,
             root_type,
+            npb_file,
             title=title,
             content=content,
             user_message=summary,

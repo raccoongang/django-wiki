@@ -15,12 +15,20 @@
   <div id="article-container">
     {% block atricle_title_and_menu %}
       {% block article_title %}
-      <h1 id="article-title">{{ urlpath.get_item_type_display }}: {{ article.current_revision.title|title }}</h1>
+      {% if urlpath.root_type == 'wiki' or urlpath.item_type == 'category' %}
+        <h1 id="article-title">{{ urlpath.get_item_type_display }}: {{ article.current_revision.title|title }}</h1>
+      {% else %}
+        <h1 id="article-title">{% trans 'Document' %}: {{ article.current_revision.title|title }}</h1>
+      {% endif %}
       {% endblock article_title %}
     <ul class="nav nav-pills" id="article-menu">
       {% block article_menu %}
         {% if user.is_superuser %}
-          {% include "wiki/includes/article_menu.html" %}
+          {% if urlpath.root_type == 'wiki' %}
+            {% include "wiki/includes/article_menu.html" %}
+          {% else %}
+            {% include "wiki/includes/document_menu.html" %}
+          {% endif %}
         {% endif %}
       {% endblock article_menu %}
 
@@ -31,6 +39,8 @@
       {% endblock %}
     </div>
   </div>
+
+{% if urlpath.root_type == 'wiki' %}
 
 <div class="article-like-holder">
   {% block articlelikes %}
@@ -136,6 +146,8 @@
      </div>
    </form>
 {% endblock comments %}
+
+{% endif %}
 
 <script>
   $(document).ready(function() {

@@ -1,0 +1,108 @@
+{% extends "wiki/article.html" %}
+{% load wiki_tags i18n sekizai_tags static %}
+
+
+{% block wiki_pagetitle %}{% trans "Add new document" %}{% endblock %}
+
+{% block wiki_breadcrumbs %}
+{% endblock wiki_breadcrumbs %}
+
+{% block wiki_contents %}
+  {% if edit_form %}
+    {% block atricle_title_and_menu %}
+      {% block article_title %}
+        <h1 id="article-title">{% trans 'Document' %}: {{ article.current_revision.title|title }}</h1>
+      {% endblock article_title %}
+    <ul class="nav nav-pills" id="article-menu">
+      {% block article_menu %}
+        {% if user.is_superuser %}
+            {% include "wiki/includes/document_menu.html" %}
+        {% endif %}
+      {% endblock article_menu %}
+    </ul>
+    {% endblock atricle_title_and_menu %}
+  {% endif %}
+
+  {% addtoblock "js" %}
+  <script type="text/javascript" src="{% static "admin/js/urlify.js" %}"></script>
+  <script type="text/javascript">
+  {% if not create_form.slug.value %}
+  //<![CDATA[
+  (function($) {
+	  $(document).ready(function (){
+		  $("#id_title").keyup(function () {
+			  var e = $("#id_slug")[0];
+			  if(!e._changed) {
+			    slug = URLify(this.value, 50);
+				  e.value = slug;
+			  }
+	      });
+	  });
+  })(jQuery);
+  //]]>
+  {% endif %}
+  </script>
+  {% endaddtoblock %}
+
+  {% include "wiki/includes/editormedia.html" %}
+  <h1 class="page-header">
+    {% if create_form %}
+      {% trans "Add new document" %}
+    {% endif %}
+  </h1>
+
+  <form method="POST" enctype="multipart/form-data" class="form-horizontal">
+    {# {% wiki_form create_form %} #}
+    {% csrf_token %}
+    {% if create_form %}
+      {{ create_form.as_p }}
+    <div class="form-group form-actions">
+      <div class="col-lg-2"></div>
+      <div class="col-lg-10">
+        <a href="{% url 'wiki:get' path=parent_urlpath.path %}" class="btn btn-default">
+          <span class="fa fa-arrow-left"></span>
+          {% trans "Go back" %}
+        </a>
+        <button type="submit" name="save_changes" class="btn btn-primary">
+          <span class="fa fa-plus"></span>
+          {% if item_type == "category" %}
+          {% trans "Create category" %}
+          {% else %}
+          {% trans "Create document" %}
+          {% endif %}
+        </button>
+      </div>
+    </div>
+    {% elif edit_form %}
+      {{ edit_form.as_p }}
+     <div class="form-group form-actions">
+      <div class="col-lg-2"></div>
+      <div class="col-lg-10">
+        <a href="{% url 'wiki:get' path=urlpath.path %}" class="btn btn-default">
+          <span class="fa fa-arrow-left"></span>
+          {% trans "Go back" %}
+        </a>
+            <button class="btn btn-primary" type="submit" name="save" value="1" id="id_save">
+              <span class="fa fa-check"></span>
+              {% trans "Save changes" %}
+            </button>
+            <div class="btn-toolbar pull-right">
+              {% if user.is_authenticated and urlpath.path %}
+              <a href="{% url 'wiki:move' path=urlpath.path article_id=article.id %}" class="btn btn-warning ">
+                <span class="fa fa-random"></span>
+                {% trans "Move" %}
+              </a>
+              {% endif %}
+              {% if article|can_delete:user %}
+              <a href="{% url 'wiki:delete' path=urlpath.path article_id=article.id %}" class="btn btn-danger">
+                <span class="fa fa-trash-o"></span>
+                {% trans "Delete" %}
+              </a>
+              {% endif %}
+            </div>
+      </div>
+    </div>
+    {% endif %}
+  </form>
+
+{% endblock %}
