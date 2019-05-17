@@ -52,6 +52,9 @@ class Create(RoleRequiredMixin, FormView, ArticleMixin):
 
     @method_decorator(get_article(can_write=True, can_create=True))
     def dispatch(self, request, article, *args, **kwargs):
+        urlpath = kwargs.get('urlpath')
+        if urlpath.root_type == URLPath.NPB and kwargs.get('item_type') == URLPath.ARTICLE:
+            self.template_name = "wiki/document_create_edit.html"
         return super().dispatch(request, article, *args, **kwargs)
 
     def get_form(self, form_class=None):
@@ -76,6 +79,10 @@ class Create(RoleRequiredMixin, FormView, ArticleMixin):
                 'title': 'Lowercase letters, numbers, hyphens and underscores' if not settings.URL_CASE_SENSITIVE else 'Letters, numbers, hyphens and underscores',
             }
         )
+        if kwargs['initial'].get('root_type') == URLPath.NPB:
+            form.fields['summary'].widget = forms.HiddenInput()
+            if kwargs['initial'].get('item_type') == URLPath.ARTICLE:
+                form.fields['content'].widget = forms.HiddenInput()
         return form
 
     def form_valid(self, form):
@@ -90,6 +97,7 @@ class Create(RoleRequiredMixin, FormView, ArticleMixin):
                 form.cleaned_data['summary'],
                 form.cleaned_data['item_type'],
                 form.cleaned_data['root_type'],
+                form.cleaned_data['npb_file']
             )
             msg = _("New category '{}' created.") if self.newpath.item_type == URLPath.CATEGORY else _("New article '{}' created.")
             messages.success(
@@ -259,12 +267,15 @@ class Edit(RoleRequiredMixin, ArticleMixin, FormView):
     def dispatch(self, request, article, *args, **kwargs):
         self.sidebar_plugins = plugin_registry.get_sidebar()
         self.sidebar = []
+        urlpath = kwargs.get('urlpath')
+        if urlpath.root_type == URLPath.NPB and urlpath.item_type == URLPath.ARTICLE:
+            self.template_name = "wiki/document_create_edit.html"
         return super().dispatch(request, article, *args, **kwargs)
 
     def get_initial(self):
         initial = FormView.get_initial(self)
 
-        for field_name in ['title', 'content']:
+        for field_name in ['title', 'content', 'npb_file']:
             session_key = 'unsaved_article_%s_%d' % (
                 field_name, self.article.id)
             if session_key in self.request.session:
@@ -287,7 +298,12 @@ class Edit(RoleRequiredMixin, ArticleMixin, FormView):
             kwargs['data'] = None
             kwargs['files'] = None
             kwargs['no_clean'] = True
-        return form_class(self.request, self.article.current_revision, **kwargs)
+        form = form_class(self.request, self.article.current_revision, **kwargs)
+        if self.urlpath.root_type == URLPath.NPB:
+            form.fields['summary'].widget = forms.HiddenInput()
+            if self.urlpath.item_type == URLPath.ARTICLE:
+                form.fields['content'].widget = forms.HiddenInput()
+        return form
 
     def get_sidebar_form_classes(self):
         """Returns dictionary of form classes for the sidebar. If no form class is
@@ -378,10 +394,12 @@ class Edit(RoleRequiredMixin, ArticleMixin, FormView):
         revision.user_message = form.cleaned_data['summary']
         revision.deleted = False
         revision.set_from_request(self.request)
+        self.urlpath.npb_file = form.cleaned_data['npb_file'] if form.cleaned_data['npb_file'] else None
+        self.urlpath.save()
         self.article.add_revision(revision)
         msg = _('A new revision of the category was successfully added.') if self.urlpath.item_type == URLPath.CATEGORY else _(
-            'A new revision of the article was successfully added.'
-        )
+            'The document was successfully updated.'
+        ) if self.urlpath.root_type == URLPath.NPB else _('A new revision of the article was successfully added.')
         messages.success(self.request, msg)
         return self.get_success_url()
 

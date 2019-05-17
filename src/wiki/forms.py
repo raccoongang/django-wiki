@@ -210,6 +210,8 @@ class EditForm(forms.Form, SpamProtectionMixin):
         required=False,
         widget=forms.HiddenInput())
 
+    npb_file = forms.FileField(required=False, label=_('Document file'))
+
     def __init__(self, request, current_revision, *args, **kwargs):
 
         self.request = request
@@ -217,6 +219,7 @@ class EditForm(forms.Form, SpamProtectionMixin):
         self.preview = kwargs.pop('preview', False)
         self.initial_revision = current_revision
         self.presumed_revision = None
+        self.urlpath = current_revision.article.urlpath_set.first()
         if current_revision:
             initial = {'content': current_revision.content,
                        'title': current_revision.title,
@@ -250,10 +253,13 @@ class EditForm(forms.Form, SpamProtectionMixin):
                 else:
                     # Always pass as kwarg
                     kwargs['data'] = data
-
+            initial.update({'npb_file': self.urlpath.npb_file})
             kwargs['initial'] = initial
 
         super().__init__(*args, **kwargs)
+
+        if (self.urlpath.root_type == models.URLPath.WIKI or self.urlpath.item_type == models.URLPath.CATEGORY):
+            self.fields['npb_file'].widget = forms.HiddenInput()
 
     def clean_title(self):
         title = self.cleaned_data.get('title', None)
@@ -275,7 +281,7 @@ class EditForm(forms.Form, SpamProtectionMixin):
                 gettext(
                     'While you were editing, someone else changed the revision. Your contents have been automatically merged with the new contents. Please review the text below.'))
         if ('title' in cd) and cd['title'] == self.initial_revision.title and cd[
-                'content'] == self.initial_revision.content:
+                'content'] == self.initial_revision.content and cd['npb_file'] == self.urlpath.npb_file:
             raise forms.ValidationError(gettext('No changes made. Nothing to save.'))
         self.check_spam()
         return cd
@@ -332,6 +338,8 @@ class CreateForm(forms.Form, SpamProtectionMixin):
         super().__init__(*args, **kwargs)
         self.request = request
         self.urlpath_parent = urlpath_parent
+        if urlpath_parent.root_type == models.URLPath.WIKI or kwargs['initial'].get('item_type') == models.URLPath.CATEGORY:
+            self.fields['npb_file'].widget = forms.HiddenInput()
 
     title = forms.CharField(label=_('Title'),)
     slug = WikiSlugField(
@@ -352,6 +360,8 @@ class CreateForm(forms.Form, SpamProtectionMixin):
     root_type = forms.ChoiceField(required=False, choices=models.URLPath.ROOT_TYPE_CHOICES, widget=forms.HiddenInput())
 
     item_type = forms.ChoiceField(required=False, choices=models.URLPath.ITEM_TYPE_CHOICES, widget=forms.HiddenInput())
+
+    npb_file = forms.FileField(required=False, label=_('Document file'))
 
     def clean_slug(self):
         return _clean_slug(self.cleaned_data['slug'], self.urlpath_parent)
