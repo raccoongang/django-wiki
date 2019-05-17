@@ -25,7 +25,7 @@ from wiki.core.paginator import WikiPaginator
 from wiki.core.plugins import registry as plugin_registry
 from wiki.core.utils import object_to_json_response
 from wiki.decorators import get_article
-from wiki.views.mixins import ArticleMixin, SuperUserRequiredMixin
+from wiki.views.mixins import ArticleMixin, RoleRequiredMixin
 from wiki.models import URLPath
 from taggit.models import Tag
 
@@ -45,7 +45,7 @@ class ArticleView(ArticleMixin, TemplateView):
         return ArticleMixin.get_context_data(self, **kwargs)
 
 
-class Create(SuperUserRequiredMixin, FormView, ArticleMixin):
+class Create(RoleRequiredMixin, FormView, ArticleMixin):
 
     form_class = forms.CreateForm
     template_name = "wiki/create.html"
@@ -137,7 +137,7 @@ class Create(SuperUserRequiredMixin, FormView, ArticleMixin):
         return c
 
 
-class Delete(SuperUserRequiredMixin, FormView, ArticleMixin):
+class Delete(RoleRequiredMixin, FormView, ArticleMixin):
 
     form_class = forms.DeleteForm
     template_name = "wiki/delete.html"
@@ -220,6 +220,8 @@ class Delete(SuperUserRequiredMixin, FormView, ArticleMixin):
             msg = _('This category together with all its contents are now completely gone! Thanks!'
                     ) if self.urlpath.item_type == URLPath.CATEGORY else _(
                 'This article together with all its contents are now completely gone! Thanks!'
+            ) if self.urlpath.root_type == URLPath.WIKI else _(
+                'This document together with all its contents are now completely gone! Thanks!'
             )
             messages.success(self.request, msg)
         else:
@@ -231,6 +233,8 @@ class Delete(SuperUserRequiredMixin, FormView, ArticleMixin):
             msg = _('The category "{}" is now marked as deleted! Thanks for keeping the site free from unwanted material!'
                     ) if self.urlpath.item_type == URLPath.CATEGORY else _(
                 'The article "{}" is now marked as deleted! Thanks for keeping the site free from unwanted material!'
+            ) if self.urlpath.root_type == URLPath.WIKI else _(
+                'The document "{}" is now marked as deleted! Thanks for keeping the site free from unwanted material!'
             )
             messages.success(self.request, msg.format(revision.title))
         return self.get_success_url()
@@ -256,7 +260,7 @@ class Delete(SuperUserRequiredMixin, FormView, ArticleMixin):
         return super().get_context_data(**kwargs)
 
 
-class Edit(ArticleMixin, FormView):
+class Edit(RoleRequiredMixin, ArticleMixin, FormView):
 
     """Edit an article and process sidebar plugins."""
 
@@ -423,7 +427,7 @@ class Edit(ArticleMixin, FormView):
         return super().get_context_data(**kwargs)
 
 
-class Move(SuperUserRequiredMixin, ArticleMixin, FormView):
+class Move(RoleRequiredMixin, ArticleMixin, FormView):
 
     form_class = forms.MoveForm
     template_name = "wiki/move.html"
@@ -627,7 +631,7 @@ class Source(ArticleMixin, TemplateView):
         return ArticleMixin.get_context_data(self, **kwargs)
 
 
-class History(ListView, ArticleMixin):
+class History(RoleRequiredMixin, ListView, ArticleMixin):
 
     template_name = "wiki/history.html"
     allow_empty = True
@@ -767,7 +771,7 @@ class Plugin(View):
         raise Http404()
 
 
-class Settings(ArticleMixin, TemplateView):
+class Settings(RoleRequiredMixin, ArticleMixin, TemplateView):
 
     permission_form_class = forms.PermissionsForm
     template_name = "wiki/settings.html"
@@ -1000,9 +1004,9 @@ class MergeView(View):
                     'r1': revision.revision_number,
                     'r2': old_revision.revision_number})
             if self.urlpath:
-                return redirect('wiki:edit', path=self.urlpath.path)
+                return redirect('wiki:history', path=self.urlpath.path)
             else:
-                return redirect('wiki:edit', article_id=article.id)
+                return redirect('wiki:history', path=article.urlpath_set.first().path)
 
         c = {
             'article': article,

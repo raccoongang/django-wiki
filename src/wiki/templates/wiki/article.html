@@ -23,7 +23,7 @@
       {% endblock article_title %}
     <ul class="nav nav-pills" id="article-menu">
       {% block article_menu %}
-        {% if user.is_superuser %}
+        {% if urlpath.root_type in user.permission_list %}
           {% if urlpath.root_type == 'wiki' %}
             {% include "wiki/includes/article_menu.html" %}
           {% else %}
