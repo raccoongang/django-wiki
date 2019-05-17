@@ -25,7 +25,7 @@ from wiki.core.paginator import WikiPaginator
 from wiki.core.plugins import registry as plugin_registry
 from wiki.core.utils import object_to_json_response
 from wiki.decorators import get_article
-from wiki.views.mixins import ArticleMixin, SuperUserRequiredMixin, RoleRequiredMixin
+from wiki.views.mixins import ArticleMixin, RoleRequiredMixin
 from wiki.models import URLPath
 from taggit.models import Tag
 
@@ -1000,9 +1000,9 @@ class MergeView(View):
                     'r1': revision.revision_number,
                     'r2': old_revision.revision_number})
             if self.urlpath:
-                return redirect('wiki:edit', path=self.urlpath.path)
+                return redirect('wiki:history', path=self.urlpath.path)
             else:
-                return redirect('wiki:edit', article_id=article.id)
+                return redirect('wiki:history', path=article.urlpath_set.first().path)
 
         c = {
             'article': article,

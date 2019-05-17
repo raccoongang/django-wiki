@@ -71,7 +71,7 @@ class Article(models.Model):
 
     # PERMISSIONS
     def can_read(self, user):
-        return True  # permissions.can_read(self, user)
+        return True
 
     def can_write(self, user):
         return self.urlpath_set.first().root_type in user.permission_list
