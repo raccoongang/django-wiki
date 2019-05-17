@@ -220,6 +220,8 @@ class Delete(RoleRequiredMixin, FormView, ArticleMixin):
             msg = _('This category together with all its contents are now completely gone! Thanks!'
                     ) if self.urlpath.item_type == URLPath.CATEGORY else _(
                 'This article together with all its contents are now completely gone! Thanks!'
+            ) if self.urlpath.root_type == URLPath.WIKI else _(
+                'This document together with all its contents are now completely gone! Thanks!'
             )
             messages.success(self.request, msg)
         else:
@@ -231,6 +233,8 @@ class Delete(RoleRequiredMixin, FormView, ArticleMixin):
             msg = _('The category "{}" is now marked as deleted! Thanks for keeping the site free from unwanted material!'
                     ) if self.urlpath.item_type == URLPath.CATEGORY else _(
                 'The article "{}" is now marked as deleted! Thanks for keeping the site free from unwanted material!'
+            ) if self.urlpath.root_type == URLPath.WIKI else _(
+                'The document "{}" is now marked as deleted! Thanks for keeping the site free from unwanted material!'
             )
             messages.success(self.request, msg.format(revision.title))
         return self.get_success_url()
