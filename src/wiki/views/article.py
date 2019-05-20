@@ -711,6 +711,14 @@ class Dir(ListView, ArticleMixin):
         kwargs['child_articles'] = children.filter(item_type=URLPath.ARTICLE)
         return kwargs
 
+    def get(self, request, **kwargs):
+        if self.urlpath.path.startswith('npb/archive/') and self.urlpath.path != 'npb/archive/':
+            if self.urlpath.item_type == URLPath.ARTICLE:
+                messages.warning(request, _("Document is obsolete"))
+            else:
+                messages.warning(request, _("Category is obsolete"))
+        return super().get(request, **kwargs)
+
 
 class SearchView(ListView):
 

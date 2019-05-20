@@ -12,4 +12,10 @@
     {% endif %}
   {% endif %}
 
+{% if urlpath.root_type == 'npb' %}
+<div>
+  <a href="#">{% trans 'Add to archive' %}</a>
+</div>
+{% endif %}
+
 {% endblock %}
