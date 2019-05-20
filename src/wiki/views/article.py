@@ -1085,7 +1085,6 @@ class AllDocuments(ListView, ArticleMixin):
         return ["wiki/all_documents.html"]
 
     def get_queryset(self):
-        # children = self.urlpath.get_children().can_read(self.request.user)
         children = URLPath.objects.filter(item_type=URLPath.ARTICLE, root_type=URLPath.NPB)
         if self.query:
             children = children.filter(
@@ -1093,8 +1092,12 @@ class AllDocuments(ListView, ArticleMixin):
                 Q(slug__icontains=self.query))
         if not self.article.can_moderate(self.request.user):
             children = children.active()
-        children = children.select_related_common().order_by(
-            'article__current_revision__title')
+        self.sort_date = self.request.GET.get('sort_date')
+        if self.sort_date:
+            children = children.select_related_common().order_by('-article__current_revision__modified')
+        else:
+            children = children.select_related_common().order_by(
+                'article__current_revision__title')
         return children
 
     def get_context_data(self, **kwargs):
@@ -1104,6 +1107,7 @@ class AllDocuments(ListView, ArticleMixin):
         kwargs.update(kwargs_listview)
         kwargs['filter_query'] = self.query
         kwargs['filter_form'] = self.filter_form
+        kwargs['sort_date'] = self.sort_date
         # Update each child's ancestor cache so the lookups don't have
         # to be repeated.
         updated_children = kwargs[self.context_object_name]

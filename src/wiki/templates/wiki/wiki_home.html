@@ -12,27 +12,28 @@
     {% endblock atricle_title_and_menu %}
 {% url 'wiki:all' urlpath.path as self_url %}
 
+{% if urlpath.root_type in user.permission_list %}
+<div class="btn-group pull-left">
+  <a href="{% url 'wiki:create' path=urlpath.path item_type='category' %}" class="btn btn-default">
+    <span class="fa fa-plus"></span>
+    {% trans "Add Category" %}
+  </a>
+  {% if urlpath.root_type == 'npb' %}
+  <a href="{% url 'wiki:get' 'npb/' %}" class="">
+    {% trans "All Categories" %}
+  </a>
+  <a href="{% url 'wiki:all_documents' 'npb' %}" class="">
+    {% trans "All Documents" %}
+  </a>
+  <a href="{% url 'wiki:get' 'npb/archive/' %}" class="">
+    {% trans "Archive" %}
+  </a>
+  {% endif %}
+</div>
+{% endif %}
+
 <form class="form-search directory-toolbar">
 <div class="well well-small">
-  {% if urlpath.root_type in user.permission_list %}
-  <div class="btn-group pull-left">
-    <a href="{% url 'wiki:create' path=urlpath.path item_type='category' %}" class="btn btn-default">
-      <span class="fa fa-plus"></span>
-      {% trans "Add Category" %}
-    </a>
-    {% if urlpath.root_type == 'npb' %}
-    <a href="{% url 'wiki:get' 'npb/' %}" class="">
-      {% trans "All Categories" %}
-    </a>
-    <a href="{% url 'wiki:all_documents' 'npb' %}" class="">
-      {% trans "All Documents" %}
-    </a>
-    <a href="{% url 'wiki:deleted_list' %}" class="">
-      {% trans "Archive" %}
-    </a>
-    {% endif %}
-  </div>
-  {% endif %}
   <div class="pull-right">
     {{ filter_form.query }}
   </div>
@@ -45,6 +46,7 @@
   <div class="clearfix"></div>
 </div>
 </form>
+
 <h1>{% trans "Categories" %}:</h1>
 <table class="table table-striped table-bordered">
   <tr>
