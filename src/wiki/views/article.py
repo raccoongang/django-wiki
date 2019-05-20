@@ -1063,3 +1063,51 @@ class CreateRootView(FormView):
 
 class MissingRootView(TemplateView):
     template_name = 'wiki/root_missing.html'
+
+
+class AllDocuments(ListView, ArticleMixin):
+    allow_empty = True
+    context_object_name = 'directory'
+    model = models.URLPath
+    paginator_class = WikiPaginator
+    paginate_by = 30
+
+    @method_decorator(get_article(can_read=True))
+    def dispatch(self, request, article, *args, **kwargs):
+        self.filter_form = forms.DirFilterForm(request.GET)
+        if self.filter_form.is_valid():
+            self.query = self.filter_form.cleaned_data['query']
+        else:
+            self.query = None
+        return super().dispatch(request, article, *args, **kwargs)
+
+    def get_template_names(self):
+        return ["wiki/all_documents.html"]
+
+    def get_queryset(self):
+        # children = self.urlpath.get_children().can_read(self.request.user)
+        children = URLPath.objects.filter(item_type=URLPath.ARTICLE, root_type=URLPath.NPB)
+        if self.query:
+            children = children.filter(
+                Q(article__current_revision__title__icontains=self.query) |
+                Q(slug__icontains=self.query))
+        if not self.article.can_moderate(self.request.user):
+            children = children.active()
+        children = children.select_related_common().order_by(
+            'article__current_revision__title')
+        return children
+
+    def get_context_data(self, **kwargs):
+        kwargs_article = ArticleMixin.get_context_data(self, **kwargs)
+        kwargs_listview = ListView.get_context_data(self, **kwargs)
+        kwargs.update(kwargs_article)
+        kwargs.update(kwargs_listview)
+        kwargs['filter_query'] = self.query
+        kwargs['filter_form'] = self.filter_form
+        # Update each child's ancestor cache so the lookups don't have
+        # to be repeated.
+        updated_children = kwargs[self.context_object_name]
+        for child in updated_children:
+            child.set_cached_ancestors_from_parent(self.urlpath)
+        kwargs[self.context_object_name] = updated_children
+        return kwargs

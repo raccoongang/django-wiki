@@ -48,6 +48,7 @@ class WikiSite:
         self.tag_update_view = getattr(self, "tag_update_view", tag.update_tag)
         self.search_view = getattr(self, "search_view", article.SearchView.as_view())
         self.article_diff_view = getattr(self, "article_diff_view", article.DiffView.as_view())
+        self.all_documents_view = getattr(self, "all_documents_view", article.AllDocuments.as_view())
 
         # account views
         self.signup_view = getattr(self, "signup_view", accounts.Signup.as_view())
@@ -155,6 +156,7 @@ class WikiSite:
             url(r'^(?P<path>.+/|)_revision/change/(?P<revision_id>[0-9]+)/$', self.revision_change_view, name='change_revision'),
             url(r'^(?P<path>.+/|)_revision/merge/(?P<revision_id>[0-9]+)/$', self.revision_merge_view, name='merge_revision'),
             url(r'^(?P<path>.+/|)_plugin/(?P<slug>\w+)/$', self.article_plugin_view, name='plugin'),
+            url(r'^(?P<path>npb)/documents/$', self.all_documents_view, name='all_documents'),
             # This should always go last!
             url(r'^(?P<path>.+/|)$', self.article_dir_view, name='get'),
         ]

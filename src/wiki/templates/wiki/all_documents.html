@@ -14,13 +14,8 @@
 
 <form class="form-search directory-toolbar">
 <div class="well well-small">
-  {% if urlpath.root_type in user.permission_list %}
+
   <div class="btn-group pull-left">
-    <a href="{% url 'wiki:create' path=urlpath.path item_type='category' %}" class="btn btn-default">
-      <span class="fa fa-plus"></span>
-      {% trans "Add Category" %}
-    </a>
-    {% if urlpath.root_type == 'npb' %}
     <a href="{% url 'wiki:get' 'npb/' %}" class="">
       {% trans "All Categories" %}
     </a>
@@ -30,9 +25,8 @@
     <a href="{% url 'wiki:deleted_list' %}" class="">
       {% trans "Archive" %}
     </a>
-    {% endif %}
   </div>
-  {% endif %}
+
   <div class="pull-right">
     {{ filter_form.query }}
   </div>
@@ -45,7 +39,7 @@
   <div class="clearfix"></div>
 </div>
 </form>
-<h1>{% trans "Categories" %}:</h1>
+<h1>{% trans "All Documents" %}:</h1>
 <table class="table table-striped table-bordered">
   <tr>
     <th>{% trans "Title" %}</th>
@@ -71,11 +65,7 @@
     <tr>
       <td colspan="100">
         <em>
-          {% if urlpath.item_type == 'article' %}
-          {% trans "There are no articles in this level" %}
-          {% else %}
-          {% trans "There are no categories in this level" %}
-          {% endif %}
+          {% trans "There are no documents in this level" %}
         </em>
       </td>
     </tr>
