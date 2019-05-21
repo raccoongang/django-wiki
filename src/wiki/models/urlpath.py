@@ -301,7 +301,7 @@ class URLPath(MPTTModel):
             slug,
             item_type,
             root_type,
-            npb_file,
+            npb_file=None,
             site=None,
             title="Root",
             article_kwargs={},
@@ -344,7 +344,7 @@ class URLPath(MPTTModel):
             summary,
             item_type,
             root_type,
-            npb_file):
+            npb_file=None):
         """
         Creates a new URLPath, using meta data from ``request`` and copies in
         the permissions from ``perm_article``.
