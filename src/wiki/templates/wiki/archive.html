@@ -4,8 +4,23 @@
 
 {% block wiki_pagetitle %}{% trans "Listing articles in" %} {{ article.current_revision.title }}{% endblock %}
 
+{% block wiki_contents %}
+<div class="btn-group">
+  <a href="{% url 'wiki:get' 'npb/' %}" class="btn btn-primary pull-left">
+    {% trans "All Categories" %}
+  </a>
+  <a href="{% url 'wiki:all_documents' 'npb' %}" class="btn btn-primary pull-left">
+    {% trans "All Documents" %}
+  </a>
+  <a href="{% url 'wiki:get' 'npb/archive/' %}" class="btn btn-primary pull-left">
+    {% trans "Archive" %}
+  </a>
+</div>
+
 {% block atricle_title_and_menu %}
-<h1>{% trans 'Archive' %}</h1>
+<div>
+  <h1 id="article-title">{% trans 'Archive' %}</h1>
+</div>
 {% endblock atricle_title_and_menu %}
 
 {% block wiki_contents_tab %}
@@ -37,7 +52,7 @@
 {#  {% endwith %} #}
 {# </p> #}
 
-<h2>{% trans "Subcategories" %}</h2>
+<h2>{% trans "Categories" %}</h2>
 <table class="table table-striped table-bordered">
   <tr>
     <th>{% trans "Title" %}</th>
@@ -117,3 +132,4 @@
 {% endif %}
 
 {% endblock %}
+{% endblock wiki_contents %}

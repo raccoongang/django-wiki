@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Q
-from django.http import Http404, HttpResponseNotFound
+from django.http import Http404, HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -552,7 +552,10 @@ class Move(RoleRequiredMixin, ArticleMixin, FormView):
             messages.success(self.request, msg)
 
         else:
-            msg = _('Category successfully moved!') if self.urlpath.item_type == URLPath.CATEGORY else _('Article successfully moved!')
+            msg = _('Category successfully moved!') if self.urlpath.item_type == URLPath.CATEGORY else _(
+                'Document successfully moved!') if self.urlpath.root_type == URLPath.NPB else _(
+                'Article successfully moved!'
+            )
             messages.success(self.request, msg.capitalize())
         return redirect("wiki:get", path=self.urlpath.path)
 
@@ -1129,18 +1132,16 @@ class AllDocuments(ListView, ArticleMixin):
         return kwargs
 
 
-class AddToArchive(RedirectView, Move):
-    def get_redirect_url(self):
-        return reverse('wiki:get', kwargs={'path': self.urlpath.path})
-
+class AddToArchive(RedirectView):
     def post(self, *args, **kwargs):
-        same_slug_urlpaths = URLPath.objects.filter(root_type=URLPath.NPB, slug=self.urlpath.slug)
-        for urlpath in same_slug_urlpaths:
-            if urlpath.path.startswith('npb/archive/' + self.urlpath.slug):
-                self.urlpath.slug += ''.join(random.sample(string.ascii_lowercase, 8))
-                self.urlpath.save()
-        form = super().get_form()
-        destination = URLPath.objects.filter(root_type=URLPath.NPB, slug='archive').first()
-        form.cleaned_data = {'destination': destination.id, 'slug': self.urlpath.slug, 'redirect': False}
-        super().form_valid(form=form)
-        return super().get(*args, **kwargs)
+        urlpath = URLPath.get_by_path(self.kwargs.get('path'))
+        same_slug_urlpaths = URLPath.objects.filter(root_type=URLPath.NPB, slug=urlpath.slug)
+        for item in same_slug_urlpaths:
+            if item.path.startswith('npb/archive/' + urlpath.slug):
+                urlpath.slug += ''.join(random.sample(string.ascii_lowercase, 8))
+                urlpath.save()
+
+        archive_urlpath = get_object_or_404(URLPath, root_type=URLPath.NPB, slug='archive')
+        urlpath.parent = archive_urlpath
+        urlpath.save()
+        return HttpResponseRedirect(reverse('wiki:get', kwargs={'path': archive_urlpath.path + urlpath.slug + '/'}))

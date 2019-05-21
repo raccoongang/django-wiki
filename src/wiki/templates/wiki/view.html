@@ -13,34 +13,7 @@
   {% endif %}
 
 {% if urlpath.root_type == 'npb' and 'npb/archive' not in urlpath.path %}
-<div>
-    <button class="btn btn-primary pull-left" type="button" data-toggle="modal" data-target="#addToArchiveModal">{% trans 'Add to archive' %}</button>
-</div>
-<form action="{% url 'wiki:add_to_archive' path=urlpath.path %}" method="post">
-    <div id="addToArchiveModal" class="modal" tabindex="-1" role="dialog">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-              {% csrf_token %}
-              <p>
-                  {% trans 'Do you confirm moving this category to archive?' %}
-              </p>
-          </div>
-          <div class="modal-footer">
-              <button type="submit" class="btn btn-primary">{% trans "Так" %}</button>
-              <input type="hidden" name="user_id" id="js-hidden-user-id"/>
-              <input type="hidden" name="role_id" value="{{ role_id }}"/>
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Скасувати" %}</button>
-          </div>
-        </div>
-      </div>
-    </div>
-</form>
+  {% include "wiki/includes/add_to_archive.html" %}
 {% endif %}
 
 {% endblock %}

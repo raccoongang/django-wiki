@@ -19,13 +19,13 @@
     {% trans "Add Category" %}
   </a>
   {% if urlpath.root_type == 'npb' %}
-  <a href="{% url 'wiki:get' 'npb/' %}" class="">
+  <a href="{% url 'wiki:get' 'npb/' %}" class="btn btn-primary pull-left">
     {% trans "All Categories" %}
   </a>
-  <a href="{% url 'wiki:all_documents' 'npb' %}" class="">
+  <a href="{% url 'wiki:all_documents' 'npb' %}" class="btn btn-primary pull-left">
     {% trans "All Documents" %}
   </a>
-  <a href="{% url 'wiki:get' 'npb/archive/' %}" class="">
+  <a href="{% url 'wiki:get' 'npb/archive/' %}" class="btn btn-primary pull-left">
     {% trans "Archive" %}
   </a>
   {% endif %}
