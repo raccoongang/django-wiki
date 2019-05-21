@@ -14,7 +14,7 @@
 
 {% if urlpath.root_type == 'npb' %}
 <div>
-  <a href="#">{% trans 'Add to archive' %}</a>
+  <a href="{% url 'wiki:add_to_archive' path=urlpath.path %}">{% trans 'Add to archive' %}</a>
 </div>
 {% endif %}
 
