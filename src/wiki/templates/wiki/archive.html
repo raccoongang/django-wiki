@@ -4,6 +4,25 @@
 
 {% block wiki_pagetitle %}{% trans "Listing articles in" %} {{ article.current_revision.title }}{% endblock %}
 
+{% block wiki_contents %}
+<div class="btn-group">
+  <a href="{% url 'wiki:get' 'npb/' %}" class="btn btn-primary pull-left">
+    {% trans "All Categories" %}
+  </a>
+  <a href="{% url 'wiki:all_documents' 'npb' %}" class="btn btn-primary pull-left">
+    {% trans "All Documents" %}
+  </a>
+  <a href="{% url 'wiki:get' 'npb/archive/' %}" class="btn btn-primary pull-left">
+    {% trans "Archive" %}
+  </a>
+</div>
+
+{% block atricle_title_and_menu %}
+<div>
+  <h1 id="article-title">{% trans 'Archive' %}</h1>
+</div>
+{% endblock atricle_title_and_menu %}
+
 {% block wiki_contents_tab %}
 
 {% url 'wiki:dir' urlpath.path as self_url %}
@@ -12,28 +31,6 @@
 
 <form class="form-search directory-toolbar">
 <div class="well well-small">
-  <div class="btn-group pull-left">
-    {% if urlpath.parent %}
-    <a href="{% url 'wiki:get' path=urlpath.parent.path %}" class="btn btn-default">
-      <span class="fa fa-arrow-up"></span>
-      {% trans "Up one level" %}
-    </a>
-    {% endif %}
-    {% if urlpath.root_type in user.permission_list %}
-    <a href="{% url 'wiki:create' path=urlpath.path item_type='category' %}" class="btn btn-default">
-      <span class="fa fa-plus"></span>
-      {% trans "Add category" %}
-    </a>
-    <a href="{% url 'wiki:create' path=urlpath.path item_type='article' %}" class="btn btn-default">
-      <span class="fa fa-plus"></span>
-      {% if urlpath.root_type == 'npb' %}
-        {% trans "Add document" %}
-      {% else %}
-        {% trans "Add article" %}
-      {% endif %}
-    </a>
-    {% endif %}
-  </div>
   <div class="pull-right">
     {{ filter_form.query }}
   </div>
@@ -55,13 +52,12 @@
 {#  {% endwith %} #}
 {# </p> #}
 
-<h2>{% trans "Subcategories" %}</h2>
+<h2>{% trans "Categories" %}</h2>
 <table class="table table-striped table-bordered">
   <tr>
     <th>{% trans "Title" %}</th>
     <th>{% trans "Last modified" %}</th>
   </tr>
-  {# {% for urlpath in directory %} #}
     {% for urlpath in subcategories %}
     <tr>
       <td>
@@ -92,13 +88,7 @@
     </tr>
   {% endfor %}
 </table>
-<h2>
-  {% if urlpath.root_type == 'npb' %}
-    {% trans "Documents" %}
-  {% else %}
-    {% trans "Articles" %}
-  {% endif %}
-</h2>
+<h2>{% trans "Documents" %}</h2>
 <table class="table table-striped table-bordered">
   <tr>
     <th>{% trans "Title" %}</th>
@@ -137,8 +127,9 @@
 
 {% include "wiki/includes/pagination.html" %}
 
-{% if urlpath.root_type == 'npb' and 'npb/archive' not in urlpath.path %}
-  {% include "wiki/includes/add_to_archive.html" %}
+{% if urlpath.root_type == 'npb' %}
+
 {% endif %}
 
 {% endblock %}
+{% endblock wiki_contents %}

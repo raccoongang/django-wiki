@@ -1,12 +1,14 @@
 import difflib
 import logging
+import random
+import string
 from urllib.parse import urljoin
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Q
-from django.http import Http404, HttpResponseNotFound
+from django.http import Http404, HttpResponseNotFound, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -149,7 +151,7 @@ class Delete(RoleRequiredMixin, FormView, ArticleMixin):
             can_delete=True))
     def dispatch(self, request, article, *args, **kwargs):
         urlpath = article.urlpath_set.get(article_id=article.id)
-        if urlpath.slug in [URLPath.WIKI, URLPath.NPB]:
+        if urlpath.slug in [URLPath.WIKI, URLPath.NPB, 'archive']:
             return HttpResponseNotFound('<h1>Page not found</h1>')
         return self.dispatch1(request, article, *args, **kwargs)
 
@@ -550,7 +552,10 @@ class Move(RoleRequiredMixin, ArticleMixin, FormView):
             messages.success(self.request, msg)
 
         else:
-            msg = _('Category successfully moved!') if self.urlpath.item_type == URLPath.CATEGORY else _('Article successfully moved!')
+            msg = _('Category successfully moved!') if self.urlpath.item_type == URLPath.CATEGORY else _(
+                'Document successfully moved!') if self.urlpath.root_type == URLPath.NPB else _(
+                'Article successfully moved!'
+            )
             messages.success(self.request, msg.capitalize())
         return redirect("wiki:get", path=self.urlpath.path)
 
@@ -674,7 +679,9 @@ class Dir(ListView, ArticleMixin):
         return super().dispatch(request, article, *args, **kwargs)
 
     def get_template_names(self):
-        if self.urlpath.item_type == 'article':
+        if self.urlpath.path == 'npb/archive/':
+            return ["wiki/archive.html"]
+        elif self.urlpath.item_type == 'article':
             return ["wiki/view.html"]
         else:
             return ["wiki/dir.html"]
@@ -710,6 +717,14 @@ class Dir(ListView, ArticleMixin):
         kwargs['subcategories'] = children.filter(item_type=URLPath.CATEGORY)
         kwargs['child_articles'] = children.filter(item_type=URLPath.ARTICLE)
         return kwargs
+
+    def get(self, request, **kwargs):
+        if self.urlpath.path.startswith('npb/archive/') and self.urlpath.path != 'npb/archive/':
+            if self.urlpath.item_type == URLPath.ARTICLE:
+                messages.warning(request, _("Document is obsolete"))
+            else:
+                messages.warning(request, _("Category is obsolete"))
+        return super().get(request, **kwargs)
 
 
 class SearchView(ListView):
@@ -1115,3 +1130,18 @@ class AllDocuments(ListView, ArticleMixin):
             child.set_cached_ancestors_from_parent(self.urlpath)
         kwargs[self.context_object_name] = updated_children
         return kwargs
+
+
+class AddToArchive(RedirectView):
+    def post(self, *args, **kwargs):
+        urlpath = URLPath.get_by_path(self.kwargs.get('path'))
+        same_slug_urlpaths = URLPath.objects.filter(root_type=URLPath.NPB, slug=urlpath.slug)
+        for item in same_slug_urlpaths:
+            if item.path.startswith('npb/archive/' + urlpath.slug):
+                urlpath.slug += ''.join(random.sample(string.ascii_lowercase, 8))
+                urlpath.save()
+
+        archive_urlpath = get_object_or_404(URLPath, root_type=URLPath.NPB, slug='archive')
+        urlpath.parent = archive_urlpath
+        urlpath.save()
+        return HttpResponseRedirect(reverse('wiki:get', kwargs={'path': archive_urlpath.path + urlpath.slug + '/'}))

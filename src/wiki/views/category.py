@@ -7,7 +7,9 @@ class CategoryListView(Dir):
     def get_queryset(self):
         qs = super().get_queryset()
         if self.urlpath.root_type == URLPath.NPB:
-            return qs.filter(item_type=URLPath.CATEGORY, root_type=URLPath.NPB)
+            return qs.filter(item_type=URLPath.CATEGORY, root_type=URLPath.NPB).exclude(
+                slug='archive'
+            )
         else:
             return qs.filter(item_type=URLPath.CATEGORY, root_type=URLPath.WIKI)
 

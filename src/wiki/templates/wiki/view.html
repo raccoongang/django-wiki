@@ -12,4 +12,8 @@
     {% endif %}
   {% endif %}
 
+{% if urlpath.root_type == 'npb' and 'npb/archive' not in urlpath.path %}
+  {% include "wiki/includes/add_to_archive.html" %}
+{% endif %}
+
 {% endblock %}
