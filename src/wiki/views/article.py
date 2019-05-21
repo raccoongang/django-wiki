@@ -1,5 +1,7 @@
 import difflib
 import logging
+import random
+import string
 from urllib.parse import urljoin
 
 from django.contrib import messages
@@ -149,7 +151,7 @@ class Delete(RoleRequiredMixin, FormView, ArticleMixin):
             can_delete=True))
     def dispatch(self, request, article, *args, **kwargs):
         urlpath = article.urlpath_set.get(article_id=article.id)
-        if urlpath.slug in [URLPath.WIKI, URLPath.NPB]:
+        if urlpath.slug in [URLPath.WIKI, URLPath.NPB, 'archive']:
             return HttpResponseNotFound('<h1>Page not found</h1>')
         return self.dispatch1(request, article, *args, **kwargs)
 
@@ -1132,6 +1134,11 @@ class AddToArchive(RedirectView, Move):
         return reverse('wiki:get', kwargs={'path': self.urlpath.path})
 
     def post(self, *args, **kwargs):
+        same_slug_urlpaths = URLPath.objects.filter(root_type=URLPath.NPB, slug=self.urlpath.slug)
+        for urlpath in same_slug_urlpaths:
+            if urlpath.path.startswith('npb/archive/' + self.urlpath.slug):
+                self.urlpath.slug += ''.join(random.sample(string.ascii_lowercase, 8))
+                self.urlpath.save()
         form = super().get_form()
         destination = URLPath.objects.filter(root_type=URLPath.NPB, slug='archive').first()
         form.cleaned_data = {'destination': destination.id, 'slug': self.urlpath.slug, 'redirect': False}

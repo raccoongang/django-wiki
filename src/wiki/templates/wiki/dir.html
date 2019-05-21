@@ -137,9 +137,9 @@
 
 {% include "wiki/includes/pagination.html" %}
 
-{% if urlpath.root_type == 'npb' %}
+{% if urlpath.root_type == 'npb' and 'npb/archive' not in urlpath.path %}
 <div>
-    <button class="btn btn-primary pull-right" type="button" data-toggle="modal" data-target="#addToArchiveModal">{% trans 'Add to archive' %}</button>
+    <button class="btn btn-primary pull-left" type="button" data-toggle="modal" data-target="#addToArchiveModal">{% trans 'Add to archive' %}</button>
 </div>
 <form action="{% url 'wiki:add_to_archive' path=urlpath.path %}" method="post">
     <div id="addToArchiveModal" class="modal" tabindex="-1" role="dialog">
