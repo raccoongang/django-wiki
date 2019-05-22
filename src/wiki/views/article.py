@@ -1101,6 +1101,8 @@ class AllDocuments(ListView, ArticleMixin):
 
     def get_queryset(self):
         children = URLPath.objects.filter(item_type=URLPath.ARTICLE, root_type=URLPath.NPB)
+        archived_children = [child.id for child in children if child.path.startswith('npb/archive/')]
+        children = children.exclude(id__in=archived_children)
         if self.query:
             children = children.filter(
                 Q(article__current_revision__title__icontains=self.query) |
@@ -1123,12 +1125,6 @@ class AllDocuments(ListView, ArticleMixin):
         kwargs['filter_query'] = self.query
         kwargs['filter_form'] = self.filter_form
         kwargs['sort_date'] = self.sort_date
-        # Update each child's ancestor cache so the lookups don't have
-        # to be repeated.
-        updated_children = kwargs[self.context_object_name]
-        for child in updated_children:
-            child.set_cached_ancestors_from_parent(self.urlpath)
-        kwargs[self.context_object_name] = updated_children
         return kwargs
 
 

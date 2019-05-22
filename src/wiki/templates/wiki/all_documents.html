@@ -57,7 +57,7 @@
   {% for urlpath in directory %}
     <tr>
       <td>
-        <a href="{% url 'wiki:get' path=urlpath.path %}"> {{ urlpath.article.current_revision.title }} </a>
+        <a href="{% url 'wiki:get' path=urlpath.path %}">{{ urlpath.article.current_revision.title }}</a>
         <a href="{% url 'wiki:dir' path=urlpath.path %}" class="list-children"> › </a>
         {% if urlpath.article.current_revision.deleted %}
           <span class="fa fa-trash"></span>
@@ -74,7 +74,7 @@
     <tr>
       <td colspan="100">
         <em>
-          {% trans "There are no documents in this level" %}
+          {% trans "There are no documents" %}
         </em>
       </td>
     </tr>
