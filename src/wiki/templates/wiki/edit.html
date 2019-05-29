@@ -144,7 +144,7 @@
       $.ajax({
         type:'POST',
         url:url,
-        data:{'tags': dataStr, 'instance': "{{ urlpath.slug }}" },
+        data:{'tags': dataStr, 'instance': "{{ urlpath.id }}" },
         dataType:'json',
         success: function (data){
           $('.alert-success').attr('hidden', false);

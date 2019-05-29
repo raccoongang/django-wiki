@@ -34,11 +34,11 @@ class TagIndexView(DetailView):
 
 @require_http_methods(["POST"])
 def update_tag(request):
-    instance = request.POST.get('instance', '')
+    instance = request.POST.get('instance')
     if not instance:
         return HttpResponseBadRequest()
     try:
-        urlpath = URLPath.objects.get(slug=instance)
+        urlpath = URLPath.objects.get(id=instance)
     except URLPath.DoesNotExist:
         return HttpResponseBadRequest()
 
