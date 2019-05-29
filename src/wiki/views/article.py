@@ -866,7 +866,7 @@ class ChangeRevisionView(RedirectView):
     @method_decorator(get_article(can_write=True, not_locked=True))
     def dispatch(self, request, article, *args, **kwargs):
         self.article = article
-        self.urlpath = kwargs.pop('kwargs', False)
+        self.urlpath = kwargs.pop('urlpath', False)
         self.change_revision()
 
         return super().dispatch(request, *args, **kwargs)
