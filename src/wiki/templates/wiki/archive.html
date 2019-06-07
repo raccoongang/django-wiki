@@ -5,21 +5,11 @@
 {% block wiki_pagetitle %}{% trans "Listing articles in" %} {{ article.current_revision.title }}{% endblock %}
 
 {% block wiki_contents %}
-<div class="btn-group">
-  <a href="{% url 'wiki:get' 'npb/' %}" class="btn btn-primary pull-left">
-    {% trans "All Categories" %}
-  </a>
-  <a href="{% url 'wiki:all_documents' 'npb' %}" class="btn btn-primary pull-left">
-    {% trans "All Documents" %}
-  </a>
-  <a href="{% url 'wiki:get' 'npb/archive/' %}" class="btn btn-primary pull-left">
-    {% trans "Archive" %}
-  </a>
-</div>
 
 {% block atricle_title_and_menu %}
-<div>
-  <h1 id="article-title">{% trans 'Archive' %}</h1>
+<div class="title">
+  <i class="fa fa-archive" aria-hidden="true"></i>
+  <h3 id="article-title">{% trans 'Archive' %}</h3>
 </div>
 {% endblock atricle_title_and_menu %}
 
@@ -29,20 +19,31 @@
 
   {% wiki_render article %}
 
-<form class="form-search directory-toolbar">
-<div class="well well-small">
-  <div class="pull-right">
-    {{ filter_form.query }}
-  </div>
-  {% if filter_query %}
-    <div class="pull-right filter-clear">
-      <a href="{{ self_url }}">({% trans "clear" %})</a>
-    </div>
-  {% endif %}
 
+<div class="well well-small">
+  <div class="btn-group pull-left">
+    <a href="{% url 'wiki:get' 'npb/' %}" class="btn btn-primary pull-left">
+      {% trans "All Categories" %}
+    </a>
+    <a href="{% url 'wiki:all_documents' 'npb' %}" class="btn btn-primary pull-left">
+      {% trans "All Documents" %}
+    </a>
+    <a href="{% url 'wiki:get' 'npb/archive/' %}" class="btn btn-primary pull-left">
+      {% trans "Archive" %}
+    </a>
+  </div>
+
+  <form class="form-search directory-toolbar">
+    <div class="pull-right">
+      {{ filter_form.query }}
+    </div>
+    {% if filter_query %}
+      <a class="pull-right filter-clear btn btn-sm btn-default" href="{{ self_url }}"><i class="fa fa-trash" aria-hidden="true"></i> ({% trans "clear" %})</a>
+    {% endif %}
+  </form>
   <div class="clearfix"></div>
 </div>
-</form>
+
 
 {# <p> #}
 {#  {% with paginator.object_list.count as cnt %} #}
@@ -52,7 +53,7 @@
 {#  {% endwith %} #}
 {# </p> #}
 
-<h2>{% trans "Categories" %}</h2>
+<h3>{% trans "Categories" %}</h3>
 <table class="table table-striped table-bordered">
   <tr>
     <th>{% trans "Title" %}</th>
@@ -88,7 +89,7 @@
     </tr>
   {% endfor %}
 </table>
-<h2>{% trans "Documents" %}</h2>
+<h3>{% trans "Documents" %}</h3>
 <table class="table table-striped table-bordered">
   <tr>
     <th>{% trans "Title" %}</th>
