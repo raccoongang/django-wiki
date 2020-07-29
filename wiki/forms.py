@@ -220,6 +220,9 @@ class CreateForm(forms.Form):
         slug = self.cleaned_data['slug']
         if slug.startswith("_"):
             raise forms.ValidationError(_(u'A slug may not begin with an underscore.'))
+
+        if slug.isdigit():
+            raise forms.ValidationError(_(u'A slug name cannot contain only digits'))
         
         if settings.URL_CASE_SENSITIVE:
             already_existing_slug = models.URLPath.objects.filter(slug=slug, parent=self.urlpath_parent)
